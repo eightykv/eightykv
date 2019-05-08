@@ -1,0 +1,298 @@
+#include "Drum.h"
+#include "TouchSensor.h"
+#include "Utility.h"
+#include "Samples.h"
+
+// 2 touch sensors, 5 drums
+const int numCaps = 2;
+const int numDrums = 5;
+TouchSensor *caps[2];
+Drum *drums[5];
+Samples *samples;
+
+// Configuration
+const int swingPin = 11;
+const int tempoPin = A3;
+const int randPin = A0;
+const int stopIndicatorPin = 51;
+const int onIndicatorPin = 52;
+const int swingIndicatorPin = 53;
+const int randIndicatorPin = 2;
+bool drumsOn;
+bool swing;
+float randomness;
+
+// Tempo
+const int tempoThreshold = 100;
+const int maxWait = 2000;
+float tempo;
+bool isLongBeat = true;
+int prepareToChange = 0;
+float totalTempo = 600.0;
+float swingTotalTempo = 600.0;
+float longBeat = 0.0;
+float shortBeat = 0.0;
+int tempoCount = 0;
+float diff = 0.0;
+long lastKnock;
+int minTempo = 300;
+
+// Progression
+byte barLength;
+long timer;
+byte location[2] = {0, 0};
+int changeProb[5] = {0, 0, 0, 0, 0};
+bool isAlt;
+
+/****************
+ * 
+ *  SETUP
+ *  Step one: 
+ *
+ ****************/
+
+void setup() {
+  Serial.begin(9600);
+  
+  while (!Serial) {; // wait for serial port to connect. Needed for native USB port only
+  }
+  //Serial.println("begin initialize");
+
+  caps[0] = new TouchSensor(0x5A);
+  caps[1] = new TouchSensor(0x5B);
+
+  // Setup the pins
+  pinMode(swingPin, INPUT);
+  pinMode(tempoPin, INPUT);
+  pinMode(randPin, INPUT);
+  pinMode(onIndicatorPin, OUTPUT);
+  pinMode(swingIndicatorPin, OUTPUT);
+  
+  // Check swing and randomness sensors
+  swing = digitalRead(swingPin);
+  setTempoWithSwing();
+  
+  float tempRand = analogRead(randPin) / 1023.0;
+  //tempRand = ((float) tempRand) / 1023.0;
+  if (abs(tempRand - randomness) > 0.02) {
+    randomness = tempRand;
+    for (int i = 0; i < numDrums; i++) {
+      drums[i]->setRandomness(randomness);
+    }
+  }
+
+  // Define/Initialize drums
+  for (int i = 0; i < numDrums; i++) {
+    int pin = 22 + i;
+    pinMode(pin, OUTPUT);
+    bool randomizeDrum = false;
+    if (i == numDrums - 1) {
+      randomizeDrum = true;
+    }
+    drums[i] = new Drum(i, pin, swing, randomness, 36 + (i * 6), randomizeDrum);
+    
+    // temp
+    drums[i]->setRandomness(0.1);
+  }
+
+  timer = 0;
+  barLength = swing ? 8 : 16;
+  isAlt = true;
+  drumsOn = true;
+  digitalWrite(onIndicatorPin, HIGH);
+
+  samples = new Samples();
+} //end setup
+
+/****************
+ * 
+ *  LOOP
+ *
+ ****************/
+void loop() {
+  checkSensors();
+
+  //doDrums();
+}// end loop
+
+void doDrums() {
+  int timeCheck = longBeat / 4.0;
+  if (swing) {
+    timeCheck = (isLongBeat ? longBeat : shortBeat);
+  }
+  if ((millis() - timer) > timeCheck) {
+    timer = millis();
+    isLongBeat = !isLongBeat;
+
+    if (drumsOn/* && !debug*/) {
+      for (int i = 0; i < numDrums; i++) {
+        drums[i]->sendHit(location[0], isAlt);
+      }
+    }
+
+    // location[0] is position in current bar
+    location[0] = (location[0] + 1) % barLength;
+    if (location[0] == 0) {
+      // If we're stopping, do it at the end of a bar
+      if (prepareToChange) { 
+        drumsOn = !drumsOn; 
+        prepareToChange = false;
+        digitalWrite(stopIndicatorPin, LOW);
+        if (!drumsOn) {
+          for (int i = 0; i < numDrums; i++) {
+            drums[i]->manualOff();
+          }
+        }
+      }
+        
+      location[1] = (location[1] + 1) % 4;
+      if (location[1] == 3) {
+        isAlt = true;
+        for (int i = 0; i < numDrums; i++) {
+          drums[i]->newPattern(true);
+        }
+      }
+      else { isAlt = false; }
+
+      // location[1] is number of elapsed bars
+      if (location[1] == 0) {
+        int r;
+        for (int i = 0; i < numDrums; i++) {
+          // Probability of a new pattern increases by 20% each time
+          changeProb[i] = changeProb[i] + 2;
+          r = random(100);
+          if (r < changeProb[i]) {
+            drums[i]->newPattern(false);
+            changeProb[i] = 0; // Reset to 0
+          }
+        }
+      }
+    }
+  }
+  if ((millis() - timer) > (timeCheck  / 2.0)) {
+    for (int i = 0; i < numDrums; i++) {
+      if (drums[i]->getDrumOn()) {
+        drums[i]->turnOnLED();
+      }
+    }
+  }
+}
+
+void calcTempo() {
+  if (Utility::debug) {
+    Serial.print("knock ");
+    Serial.println(tempoCount);
+  }
+  
+  if (tempoCount == 0) {
+    lastKnock = millis();
+    tempoCount = 1;
+    diff = 0;
+  }
+  else {
+    long tempMillis = millis();
+    tempoCount = tempoCount + 1;
+    diff = diff + (tempMillis - lastKnock);
+    lastKnock = tempMillis;
+  }
+
+  if (tempoCount == 4) {
+    // We're done; set the tempo
+    totalTempo = ceil(diff / 4.0);
+
+    // Calculate the tempo based on the tapped tempo
+    setTempoWithSwing();
+  }
+}
+
+void setTempoWithSwing() {
+  if(swing) {
+    swingTotalTempo = totalTempo;
+    longBeat = swingTotalTempo * 0.67;
+    shortBeat = swingTotalTempo * 0.33;
+  }
+  else {
+    longBeat = totalTempo;
+    shortBeat = totalTempo;
+  }
+
+  if (Utility::debug) {
+    Serial.println(totalTempo);
+    Serial.println(longBeat);
+    Serial.println(shortBeat);
+  }
+  
+  barLength = swing ? 8 : 16;
+}
+
+void clearTempo() {
+  if (Utility::debug) {
+    Serial.println("clearing");
+  }
+  if (tempoCount >= 3) {
+    // Successfully finished
+  }
+  else {
+    prepareToChange = 1;
+    if (drumsOn) {
+      digitalWrite(stopIndicatorPin, HIGH);
+    }
+  }
+  lastKnock = 0;
+  tempoCount = 0;
+}
+
+void checkSensors() {
+  digitalWrite(onIndicatorPin, drumsOn);
+  
+  // Check swing and randomness sensors
+  int tempSwing = digitalRead(swingPin);
+  if (tempSwing != swing) {
+    swing = tempSwing;
+    setTempoWithSwing();
+  }
+
+  float tempRand = analogRead(randPin) / 1023.0;
+  //tempRand = ((float) tempRand) / 1023.0;
+  if (abs(tempRand - randomness) > 0.02) {
+    randomness = tempRand;
+    for (int i = 0; i < numDrums; i++) {
+      drums[i]->setRandomness(randomness);
+    }
+  }
+
+  // Tap tempo
+  tempo = analogRead(tempoPin);
+  if (tempo > tempoThreshold) {
+    // Tap 4 times; must be at least minTempo ms between taps 
+    // (to prevent reading the same knock as multiples)
+    if (tempoCount < 4 && (lastKnock == 0 || (millis() - lastKnock) > minTempo)) {
+      calcTempo();
+    }
+  }
+  // If it's been maxWait ms without a new interaction,
+  // 
+  else if (lastKnock != 0 && (millis() - lastKnock) > maxWait) {
+    clearTempo();
+  }
+  
+  // Check MPR121 sensors
+  for (int i = 0; i < numCaps; i++) {
+    // Check if any of the electrode readings have changed
+    int electrodeChanged = caps[i]->readTouchData();
+
+    if (electrodeChanged > -1) {
+      if (Utility::debug) {
+        Serial.print("Electrode changed: ");
+        Serial.println(electrodeChanged);
+        Serial.println();
+      }
+      int drumIndex = ((i * numElectrodes) + electrodeChanged)/3;
+      if (drumIndex < 5) {
+        int newDensity = electrodeChanged % 3;
+        drums[drumIndex]->setDensity(newDensity, caps[i]->getCapOn(electrodeChanged));
+      }
+    }
+  }
+} // end checkSensors
+
