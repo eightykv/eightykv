@@ -56,7 +56,7 @@ char output[9];
  ****************/
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(57600);
   
   while (!Serial) {; // wait for serial port to connect. Needed for native USB port only
   }
@@ -93,6 +93,7 @@ void setup() {
     
     // temp
     drums[i]->setRandomness(0.1);
+    d[i] = 0;
   }
 
   timer = 0;
@@ -112,7 +113,7 @@ void setup() {
 void loop() {
   checkSensors();
 
-  //doDrums();
+  doDrums();
 }// end loop
 
 void doDrums() {
@@ -126,7 +127,12 @@ void doDrums() {
 
     if (drumsOn/* && !debug*/) {
       for (int i = 0; i < numDrums; i++) {
-        d[i] = drums[i]->getHit(location[0], isAlt);
+        if (drums[i]->getDrumOn()) {
+          d[i] = drums[i]->getHit(location[0], isAlt);
+        }
+        else {
+          d[i] = 0;
+        }
       }
       sprintf(output, "%d %d %d %d %d", d[0], d[1], d[2], d[3], d[4]);
       Serial.println(output);
@@ -139,7 +145,7 @@ void doDrums() {
       if (prepareToChange) { 
         drumsOn = !drumsOn; 
         prepareToChange = false;
-        digitalWrite(stopIndicatorPin, LOW);
+        digitalWrite(onIndicatorPin, drumsOn ? LOW : HIGH);
       }
         
       location[1] = (location[1] + 1) % 4;

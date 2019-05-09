@@ -5,7 +5,7 @@
 
 class Utility {
   public:
-    const static bool debug = true;
+    const static bool debug = false;
     static Utility* getUtility();
   private:
     static Utility* utility;

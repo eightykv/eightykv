@@ -15,8 +15,10 @@ TouchSensor::TouchSensor(int address) {
   if (!(cap).begin(address)) {
     // Turn on an error 
   } else {
-    Serial.print("MPR121_t found at address ");
-    Serial.println(address, HEX);
+    if (Utility::debug) {
+      Serial.print("MPR121_t found at address ");
+      Serial.println(address, HEX);
+    }
   }
   if (Utility::debug) {
     Serial.println();
@@ -82,4 +84,3 @@ int TouchSensor::readTouchData() {
 bool TouchSensor::getCapOn(int index) {
   return capOn[index];
 }
-
