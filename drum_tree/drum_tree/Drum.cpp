@@ -1,30 +1,18 @@
 #include "Arduino.h"
 #include "Drum.h"
-#include <MIDI.h>
 
-MIDI_CREATE_DEFAULT_INSTANCE();
-
-Drum::Drum(int _index, int _pin, bool _swing, float _randomness, int _midiNote, bool _randomizeDrum) {
+Drum::Drum(int _index, int _pin, bool _swing, float _randomness) {
   // Set the local params
   pin = _pin;
   index = _index;
   swing = _swing;
   density = -1;
   randomness = _randomness;
-  randomizeDrum = _randomizeDrum;
   drumOn = false;
   for (int i = 0; i < 3; i++) {
     densityPins[i] = false;
   }
-
-  if (randomizeDrum) {
-    midiNote = _midiNote + random(6);
-  }
-  else {
-    midiNote = _midiNote;
-  }
-  lastNote = 0;
-
+  
   probability = new Probability(_index, _randomness);
 
   for(int i = 0; i < maxBarLength; i++) {
@@ -47,8 +35,7 @@ void Drum::setDrumOn(bool _drumOn) {
     newPattern(false);
   }
   else {
-    // Make sure to send a note off for this when we finish
-    MIDI.sendNoteOff(midiNote, 127, 7);
+    // Something??
   }
 
   digitalWrite(pin, drumOn ? HIGH : LOW);
@@ -86,25 +73,17 @@ void Drum::setRandomness(float _randomness) {
   probability->setRandomness(_randomness);
 }
 
-void Drum::sendHit(int i, bool isAlt) {
+int Drum::getHit(int i, bool isAlt) {
   i = swing ? i * 2 : i;
   i = i % maxBarLength;
   if (drumOn) {
     bool isHit = isAlt ? altHits[i] : hits[i];
     if (isHit) {
-      int tempNote = midiNote;
-      if (randomizeDrum) {
-        int doRand = random(100);
-        if (doRand < randomNoteProb) {
-          tempNote = midiNote + random(6);
-        }
-      }
-      //Serial.println("send hit");
-      MIDI.sendNoteOff(lastNote, 127, 7);
-      MIDI.sendNoteOn(tempNote, 127, 7);
-      
-      lastNote = tempNote;
       turnOffLED(); // LED is on EXCEPT for the first 1/3rd of a beat
+      return 1;
+    }
+    else {
+      return 0;
     }
   }
 }
@@ -117,16 +96,6 @@ void Drum::turnOnLED() {
   digitalWrite(pin, HIGH);
 }
 
-void Drum::manualHit() {
-  // Always turn it off first
-  MIDI.sendNoteOff(midiNote, 127, 7);
-  MIDI.sendNoteOn(midiNote, 127, 7);
-}
-
-void Drum::manualOff() {
-  MIDI.sendNoteOff(midiNote, 127, 7);
-}
-
 /**
  * This is the most important method
  * Generates a new rhythm using the density arrays
@@ -134,7 +103,6 @@ void Drum::manualOff() {
 void Drum::newPattern(bool isAlt) {
   
   // Always turn the drum off before starting a new pattern
-  //MIDI.sendNoteOff(midiNote, 127, 7);
   int *probabilityRow = probability->getProbability();
 
   for(int i = 0; i < maxBarLength; i++) {
@@ -158,9 +126,3 @@ void Drum::newPattern(bool isAlt) {
     }
   }
 }
-
-
-
-
-
-

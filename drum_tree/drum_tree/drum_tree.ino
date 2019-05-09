@@ -44,6 +44,10 @@ byte location[2] = {0, 0};
 int changeProb[5] = {0, 0, 0, 0, 0};
 bool isAlt;
 
+// Output
+int d[5];
+char output[9];
+
 /****************
  * 
  *  SETUP
@@ -85,11 +89,7 @@ void setup() {
   for (int i = 0; i < numDrums; i++) {
     int pin = 22 + i;
     pinMode(pin, OUTPUT);
-    bool randomizeDrum = false;
-    if (i == numDrums - 1) {
-      randomizeDrum = true;
-    }
-    drums[i] = new Drum(i, pin, swing, randomness, 36 + (i * 6), randomizeDrum);
+    drums[i] = new Drum(i, pin, swing, randomness);
     
     // temp
     drums[i]->setRandomness(0.1);
@@ -101,7 +101,7 @@ void setup() {
   drumsOn = true;
   digitalWrite(onIndicatorPin, HIGH);
 
-  samples = new Samples();
+  //samples = new Samples();
 } //end setup
 
 /****************
@@ -126,8 +126,10 @@ void doDrums() {
 
     if (drumsOn/* && !debug*/) {
       for (int i = 0; i < numDrums; i++) {
-        drums[i]->sendHit(location[0], isAlt);
+        d[i] = drums[i]->getHit(location[0], isAlt);
       }
+      sprintf(output, "%d %d %d %d %d", d[0], d[1], d[2], d[3], d[4]);
+      Serial.println(output);
     }
 
     // location[0] is position in current bar
@@ -138,11 +140,6 @@ void doDrums() {
         drumsOn = !drumsOn; 
         prepareToChange = false;
         digitalWrite(stopIndicatorPin, LOW);
-        if (!drumsOn) {
-          for (int i = 0; i < numDrums; i++) {
-            drums[i]->manualOff();
-          }
-        }
       }
         
       location[1] = (location[1] + 1) % 4;
@@ -295,4 +292,3 @@ void checkSensors() {
     }
   }
 } // end checkSensors
-

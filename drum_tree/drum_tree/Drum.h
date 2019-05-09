@@ -9,16 +9,14 @@ const int randomNoteProb = 20;
 class Drum
 {
   public:
-    Drum(int _index, int _pin, bool _swing, float _randomness, int _midiNote, bool _randomizeDrum);
+    Drum(int _index, int _pin, bool _swing, float _randomness);
     bool  getDrumOn();
     void  setDrumOn(bool _drumOn);
     int   getDensity();
     void  setDensity(int _density, bool capOn);
     void  setRandomness(float _randomness);
     void  newPattern(bool isAlt);
-    void  sendHit(int index, bool isAlt);
-    void  manualHit();
-    void  manualOff();
+    int   getHit(int index, bool isAlt);
     void  turnOffLED();
     void  turnOnLED();
   private:
@@ -27,14 +25,12 @@ class Drum
     bool  hits[16];
     bool  altHits[16];
     bool  densityPins[3];
-    int   midiNote;
     int   lastNote;
     int   pin;
     bool  swing;
     int   index;
     int   density;
     float randomness;
-    bool  randomizeDrum;
     Probability *probability;
 };
 

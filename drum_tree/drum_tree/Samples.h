@@ -2,7 +2,6 @@
 #define Samples_h
 
 #include "Arduino.h"
-#include <MIDI.h>
 
 class Samples {
   public:

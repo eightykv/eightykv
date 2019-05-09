@@ -1,6 +1,5 @@
 #include "Samples.h"
-
-MIDI_CREATE_CUSTOM_INSTANCE(HardwareSerial, Serial, SAMPLESMIDI, midi::DefaultSettings);
+/*
 
 Samples::Samples() {
   baseMidiNote = 24;
@@ -24,4 +23,4 @@ void Samples::goBack() {
 
 void Samples::reset() {
   midiNote = baseMidiNote;
-}
+}*/
