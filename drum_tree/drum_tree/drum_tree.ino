@@ -8,6 +8,7 @@ const int numCaps = 2;
 const int numDrums = 5;
 TouchSensor *caps[2];
 Drum *drums[5];
+
 Samples *samples;
 
 // Configuration
@@ -23,7 +24,7 @@ bool swing;
 float randomness;
 
 // Tempo
-const int tempoThreshold = 100;
+const int tempoThreshold = 500;
 const int maxWait = 2000;
 float tempo;
 bool isLongBeat = true;
@@ -247,7 +248,7 @@ void clearTempo() {
 
 void checkSensors() {
   digitalWrite(onIndicatorPin, drumsOn);
-  
+
   // Check swing and randomness sensors
   int tempSwing = digitalRead(swingPin);
   if (tempSwing != swing) {
@@ -273,6 +274,7 @@ void checkSensors() {
       calcTempo();
     }
   }
+  
   // If it's been maxWait ms without a new interaction,
   // 
   else if (lastKnock != 0 && (millis() - lastKnock) > maxWait) {
