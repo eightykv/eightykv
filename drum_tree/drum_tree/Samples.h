@@ -2,16 +2,16 @@
 #define Samples_h
 
 #include "Arduino.h"
+#include "Utility.h"
 
 class Samples {
   public:
     Samples();
     void sendSample();
     void goBack();
-    void reset();
+    void sampleReset();
   private:
-    int midiNote;
-    int baseMidiNote;
+    int counter;
 };
 
 #endif

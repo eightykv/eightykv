@@ -103,7 +103,7 @@ void setup() {
   drumsOn = true;
   digitalWrite(onIndicatorPin, HIGH);
 
-  //samples = new Samples();
+  samples = new Samples();
 } //end setup
 
 /****************
@@ -195,7 +195,7 @@ void calcTempo() {
   }
   else {
     long tempMillis = millis();
-    tempoCount = tempoCount + 1;
+    tempoCount++;
     diff = diff + (tempMillis - lastKnock);
     lastKnock = tempMillis;
   }
@@ -296,6 +296,20 @@ void checkSensors() {
       if (drumIndex < 5) {
         int newDensity = electrodeChanged % 3;
         drums[drumIndex]->setDensity(newDensity, caps[i]->getCapOn(electrodeChanged));
+      }
+      else if (drumIndex == 6) {
+        // Controls samples for "backing tracks"
+        switch (electrodeChanged) {
+          case 3:
+            samples->sendSample();
+            break;
+          case 4:
+            samples->goBack();
+            break;
+          case 5:
+            samples->sampleReset();
+            break;
+        }
       }
     }
   }

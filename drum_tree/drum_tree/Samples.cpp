@@ -1,26 +1,29 @@
 #include "Samples.h"
-/*
 
 Samples::Samples() {
-  baseMidiNote = 24;
-  midiNote = baseMidiNote;
+  counter = 0;
 }
 
 void Samples::sendSample() {
-  SAMPLESMIDI.sendNoteOff(midiNote, 127, 8);
-  
-  midiNote = midiNote + 1;
-  SAMPLESMIDI.sendNoteOn(midiNote, 127, 8);
+  if (Utility::debug) {
+    Serial.print("Samples: Sending sample ");
+  }
+  Serial.println(counter);
+  counter++;
 }
 
 void Samples::goBack() {
-  midiNote = midiNote - 1;
-  // Never let it go lower than the base note
-  if (midiNote < baseMidiNote) {
-    midiNote = baseMidiNote;
+  if (Utility::debug) {
+    Serial.println("Samples: Going back");
+  }
+  if (counter > 0) {
+    counter--;
   }
 }
 
-void Samples::reset() {
-  midiNote = baseMidiNote;
-}*/
+void Samples::sampleReset() {
+  if (Utility::debug) {
+    Serial.println("Samples: Resetting");
+  }
+  counter = 0;
+}
