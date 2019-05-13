@@ -88,14 +88,14 @@ void loop() {
   // Turn y on until I do this again
   if(l_y_bin) {
     if(!on && millis() - ms >= 500) {
-      on = 127;
+      at = 127;
       digitalWrite(5, HIGH);
       digitalWrite(6, HIGH);
       ms = millis();
     }
     else {
       if(millis() - ms >= 500) {
-        on = 0;
+        at = 0;
         digitalWrite(5, LOW);
         digitalWrite(6, LOW);
         ms = millis();
@@ -140,19 +140,19 @@ void loop() {
   p_bin = p < (p_cal - diff) ? 1.0 : 0.0;
 
   
-  int on_flag = 0;
+  int at_flag = 0;
   int i_flag = 0;
   int m_flag = 0;
   int r_flag = 0;
   int p_flag = 0;
   
-  if(on) { on_flag = 1; }
+  if(at)    { at_flag = 1; }
   if(i_bin) { i_flag = 1; }
   if(m_bin) { m_flag = 1; }
   if(r_bin) { r_flag = 1; }
   if(p_bin) { p_flag = 1; }
 
-  sprintf(output_arr, "%03d %03d %03d %d %d %d %d %d", x_out, y_out, z_out, i_flag, m_flag, r_flag, p_flag, on_flag);
+  sprintf(output_arr, "%03d %03d %03d %d %d %d %d %d", x_out, y_out, z_out, i_flag, m_flag, r_flag, p_flag, at_flag);
   Serial.println(output_arr);
   
   radio.write(&output_arr, sizeof(output_arr));
@@ -171,4 +171,3 @@ void cal(double* calVal) {
   }
   calibrate = false;
 }
-
