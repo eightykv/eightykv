@@ -295,7 +295,7 @@ void checkSensors() {
       int drumIndex = ((i * numElectrodes) + electrodeChanged)/3;
       if (drumIndex < 5) {
         int newDensity = electrodeChanged % 3;
-        drums[drumIndex]->setDensity(newDensity, caps[i]->getCapOn(electrodeChanged));
+        drums[drumIndex]->setDensity(newDensity, caps[i]->getElectrodeOn(electrodeChanged, drumIndex % 4));
       }
       else if (drumIndex == 6) {
         // Controls samples for "backing tracks"

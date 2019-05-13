@@ -48,23 +48,13 @@ void Drum::setDensity(int _density, bool capOn) {
   bool drumIsOn = false;
   if (capOn) {
     density = _density;
-    densityPins[_density] = true;
     drumIsOn = true;
-    probability->setDensity(_density);
   }
   else {
-    densityPins[_density] = false;
-    _density = -1;
-    for (int i = 0; i < 3; i++) {
-      if (densityPins[i]) {
-        drumIsOn = true;
-        _density = i;
-      }
-    }
-    probability->setDensity(_density);
+    density = -1;
   }
-  
-  density = _density;
+
+  probability->setDensity(density);
   setDrumOn(drumIsOn);
 }
 
