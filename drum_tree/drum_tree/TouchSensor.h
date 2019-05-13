@@ -8,13 +8,13 @@
 
 // 12 electrodes -- this needs to be available gloablly
 const byte numElectrodes = 12;
-const int threshold[12] = {15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15};
+const int threshold = 15;
 
 class TouchSensor
 {
   public:
     // Constructor
-    TouchSensor(int address);
+    TouchSensor(int _address);
     // To be invoked over and over, updating the values
     int readTouchData();
     // Checks if a particular index is on
@@ -24,6 +24,9 @@ class TouchSensor
   private:
     // Internal sensor object
     MPR121_t cap;
+
+    // Store address
+    int address;
 
     // Initialization data
     const int touchThreshold = 70;

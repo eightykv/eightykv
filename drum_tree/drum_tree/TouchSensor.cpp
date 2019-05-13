@@ -2,9 +2,10 @@
 #include "TouchSensor.h"
 
 // Constructor
-TouchSensor::TouchSensor(int address) {
+TouchSensor::TouchSensor(int _address) {
   // Initialize the capacitor
   cap = MPR121_t();
+  address = _address;
 
   // Default address is 0x5A, if tied to 3.3V its 0x5B
   // If tied to SDA its 0x5C and if SCL then 0x5D
@@ -60,7 +61,7 @@ int TouchSensor::readTouchData() {
       Serial.print(" ");*/
       //Serial.print(abs(baseline - filtered));
       //Serial.print(" ");
-      if (abs(baseline - filtered) > threshold[i]) {
+      if (abs(baseline - filtered) > threshold) {
         touch = true;
       }
       
