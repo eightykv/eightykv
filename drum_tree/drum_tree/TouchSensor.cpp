@@ -65,10 +65,12 @@ int TouchSensor::readTouchData() {
         touch = true;
       }
       
-      if (touch && elapsed[i] > waitTime) {
-        elapsed[i] = 0;
-        electrodeOn[i] = !electrodeOn[i];
-        changed = i;
+      if (touch) {
+        if ((address == 0x5B && i > 2 && ((i == 6 && elapsed[i] > minTempo) || elapsed[i] > padWait)) || (elapsed[i] > waitTime)) {
+          elapsed[i] = 0;
+          electrodeOn[i] = !electrodeOn[i];
+          changed = i;
+        }
       }
       else if (elapsed[i] <= waitTime) {
         elapsed[i] += 50;
@@ -91,6 +93,8 @@ bool TouchSensor::getElectrodeOn(int index, int drumIndex) {
     for (int i = 0; i < 3; i++) {
       int currIndex = baseIndex + i;
       if (currIndex != index) {
+        Serial.print("turning off ");
+        Serial.println(currIndex);
         electrodeOn[currIndex] = false;
       }
     }

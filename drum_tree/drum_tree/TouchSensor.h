@@ -33,6 +33,8 @@ class TouchSensor
     const int releaseThreshold = 35;
     const int capSenseInterval = 50;
     const int waitTime = 1500;
+    const int padWait = 400;
+    const int minTempo = 200;
 
     // On/off touch data for drumtree
     bool electrodeOn[12];
