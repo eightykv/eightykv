@@ -67,7 +67,7 @@ int TouchSensor::readTouchData() {
       
       if (touch && elapsed[i] > waitTime) {
         elapsed[i] = 0;
-        electrodeOn[i] != electrodeOn[i];
+        electrodeOn[i] = !electrodeOn[i];
         changed = i;
       }
       else if (elapsed[i] <= waitTime) {
