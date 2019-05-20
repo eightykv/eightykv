@@ -35,7 +35,7 @@ TouchSensor::TouchSensor(int _address) {
 
   // Initialize the arrays
   for (int i = 0; i < numElectrodes; i++) {
-    capOn[i] = false;
+    electrodeOn[i] = false;
     elapsed[i] = 0;
   }
 
@@ -65,13 +65,15 @@ int TouchSensor::readTouchData() {
         touch = true;
       }
       
-      if (touch && elapsed[i] > waitTime) {
-        elapsed[i] = 0;
-        capOn[i] = !capOn[i];
-        changed = i;
+      if (touch) {
+        if ((address == 0x5B && i > 2 && ((i == 6 && elapsed[i] > minTempo) || elapsed[i] > padWait)) || (elapsed[i] > waitTime)) {
+          elapsed[i] = 0;
+          electrodeOn[i] = !electrodeOn[i];
+          changed = i;
+        }
       }
       else if (elapsed[i] <= waitTime) {
-        elapsed[i] = elapsed[i] + 50;
+        elapsed[i] += 50;
       }
     }
     //Serial.println();
@@ -82,6 +84,20 @@ int TouchSensor::readTouchData() {
 }
 
 // Checks if a particular index is on
-bool TouchSensor::getCapOn(int index) {
-  return capOn[index];
+// Turns off all other indexes for this drum if so
+bool TouchSensor::getElectrodeOn(int index, int drumIndex) {
+  bool on = electrodeOn[index];
+  // If we're turning this one on, turn off all the others
+  if (on) {
+    int baseIndex = drumIndex * 3;
+    for (int i = 0; i < 3; i++) {
+      int currIndex = baseIndex + i;
+      if (currIndex != index) {
+        Serial.print("turning off ");
+        Serial.println(currIndex);
+        electrodeOn[currIndex] = false;
+      }
+    }
+  }
+  return electrodeOn[index];
 }

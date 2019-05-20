@@ -18,7 +18,7 @@ class TouchSensor
     // To be invoked over and over, updating the values
     int readTouchData();
     // Checks if a particular index is on
-    bool getCapOn(int index);
+    bool getElectrodeOn(int index, int drumIndex);
     // Turn off the other caps when a drum is updated
     
   private:
@@ -33,9 +33,11 @@ class TouchSensor
     const int releaseThreshold = 35;
     const int capSenseInterval = 50;
     const int waitTime = 1500;
+    const int padWait = 400;
+    const int minTempo = 200;
 
     // On/off touch data for drumtree
-    bool capOn[12];
+    bool electrodeOn[12];
     int  elapsed[12];
 
     // Timer for knowing when to check cap sensor

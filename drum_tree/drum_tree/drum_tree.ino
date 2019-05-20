@@ -25,7 +25,7 @@ float randomness;
 
 // Tempo
 const int tempoThreshold = 500;
-const int maxWait = 2000;
+const int maxWait = 4000;
 float tempo;
 bool isLongBeat = true;
 int prepareToChange = 0;
@@ -142,13 +142,6 @@ void doDrums() {
     // location[0] is position in current bar
     location[0] = (location[0] + 1) % barLength;
     if (location[0] == 0) {
-      // If we're stopping, do it at the end of a bar
-      if (prepareToChange) { 
-        drumsOn = !drumsOn; 
-        prepareToChange = false;
-        digitalWrite(onIndicatorPin, drumsOn ? LOW : HIGH);
-      }
-        
       location[1] = (location[1] + 1) % 4;
       if (location[1] == 3) {
         isAlt = true;
@@ -160,6 +153,13 @@ void doDrums() {
 
       // location[1] is number of elapsed bars
       if (location[1] == 0) {
+        // Pause at the end of a measure instead
+        if (prepareToChange) { 
+          drumsOn = !drumsOn; 
+          prepareToChange = false;
+          digitalWrite(onIndicatorPin, drumsOn ? LOW : HIGH);
+        }
+        
         int r;
         for (int i = 0; i < numDrums; i++) {
           // Probability of a new pattern increases by 20% each time
@@ -203,6 +203,8 @@ void calcTempo() {
   if (tempoCount == 4) {
     // We're done; set the tempo
     totalTempo = ceil(diff / 4.0);
+    lastKnock = 0;
+    tempoCount = 0;
 
     // Calculate the tempo based on the tapped tempo
     setTempoWithSwing();
@@ -233,17 +235,31 @@ void clearTempo() {
   if (Utility::debug) {
     Serial.println("clearing");
   }
-  if (tempoCount >= 3) {
-    // Successfully finished
+  lastKnock = 0;
+  tempoCount = 0;
+}
+
+void pause(bool immediate) {
+  if (Utility::debug) {
+    Serial.println("Pausing");
+  }
+  if (immediate) {
+    drumsOn = false;
   }
   else {
     prepareToChange = 1;
-    if (drumsOn) {
-      digitalWrite(stopIndicatorPin, HIGH);
-    }
+    digitalWrite(stopIndicatorPin, HIGH);
   }
-  lastKnock = 0;
-  tempoCount = 0;
+}
+
+void start() {
+  if (Utility::debug) {
+    Serial.println("Starting");
+  }
+  drumsOn = true;
+  location[0] = 0;
+  location[1] = 0;
+  location[2] = 0;
 }
 
 void checkSensors() {
@@ -265,22 +281,6 @@ void checkSensors() {
     }
   }
 
-  // Tap tempo
-  tempo = analogRead(tempoPin);
-  if (tempo > tempoThreshold) {
-    // Tap 4 times; must be at least minTempo ms between taps 
-    // (to prevent reading the same knock as multiples)
-    if (tempoCount < 4 && (lastKnock == 0 || (millis() - lastKnock) > minTempo)) {
-      calcTempo();
-    }
-  }
-  
-  // If it's been maxWait ms without a new interaction,
-  // 
-  else if (lastKnock != 0 && (millis() - lastKnock) > maxWait) {
-    clearTempo();
-  }
-  
   // Check MPR121 sensors
   for (int i = 0; i < numCaps; i++) {
     // Check if any of the electrode readings have changed
@@ -295,18 +295,35 @@ void checkSensors() {
       int drumIndex = ((i * numElectrodes) + electrodeChanged)/3;
       if (drumIndex < 5) {
         int newDensity = electrodeChanged % 3;
-        drums[drumIndex]->setDensity(newDensity, caps[i]->getCapOn(electrodeChanged));
+        drums[drumIndex]->setDensity(newDensity, caps[i]->getElectrodeOn(electrodeChanged, drumIndex % 4));
       }
-      else if (drumIndex == 6) {
-        // Controls samples for "backing tracks"
+      else {
+        // Controls start/stop, tap tempo, samples for backing tracks
         switch (electrodeChanged) {
           case 3:
-            samples->sendSample();
+            start();
             break;
           case 4:
-            samples->goBack();
+            pause(true);
             break;
           case 5:
+            pause(false);
+            break;
+          case 6:
+            if (tempoCount < 4) {
+              calcTempo();
+            }
+            else if (lastKnock != 0 && (millis() - lastKnock) > maxWait) {
+              clearTempo();
+            }
+            break;
+          case 7:
+            samples->sendSample();
+            break;
+          case 8:
+            samples->goBack();
+            break;
+          case 9:
             samples->sampleReset();
             break;
         }
