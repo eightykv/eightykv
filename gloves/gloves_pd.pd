@@ -1,5 +1,5 @@
 #N canvas 648 117 839 575 12;
-#N canvas 131 260 692 415 loadsamples 0;
+#N canvas 131 261 692 414 loadsamples 0;
 #N canvas 316 50 292 271 darkwatersample 0;
 #X obj 15 133 hip~ 5;
 #X obj 34 160 *~;
@@ -856,6 +856,7 @@ and phase;
 #X obj 85 247 / 127;
 #X obj 57 267 / 127;
 #X obj 30 287 / 127;
+#X obj 462 111 vox;
 #X connect 4 0 1 0;
 #X connect 5 0 3 0;
 #X connect 6 0 7 0;
