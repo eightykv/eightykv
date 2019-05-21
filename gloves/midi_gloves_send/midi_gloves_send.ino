@@ -15,10 +15,11 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55);
 float x, y, z;
 float prev_x, prev_y, prev_z;
 float l_x, l_y, l_z;
-float l_y_trig = 7.0;
+float l_y_trig = 5.0;
 bool l_y_bin = false;
-int on = 0;
+int at = 0;
 long ms;
+int vox;
 
 double diff = 20;
 double p_diff = 15;
@@ -37,7 +38,7 @@ int x_out, y_out, z_out;
 char output_arr[29];
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(57600);
   radio.begin();
   radio.openWritingPipe(address);
   radio.setPALevel(RF24_PA_HIGH);
@@ -65,7 +66,8 @@ void setup() {
   pinMode(A1, INPUT);
   pinMode(A2, INPUT);
   pinMode(A3, INPUT);
-  
+  pinMode(4, INPUT_PULLUP);
+  pinMode(3, INPUT_PULLUP);
   calibrate = true;
 }
 
@@ -73,7 +75,7 @@ void loop() {
   /* Get a new sensor event */
   if(count % 2 == 0) {
     bno.getEvent(&event);
-    lin_accel = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+    lin_accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
   }
 
   // Reset the binary values array
@@ -87,7 +89,7 @@ void loop() {
   
   // Turn y on until I do this again
   if(l_y_bin) {
-    if(!on && millis() - ms >= 500) {
+    if(!at && millis() - ms >= 500) {
       at = 127;
       digitalWrite(5, HIGH);
       digitalWrite(6, HIGH);
@@ -137,8 +139,7 @@ void loop() {
   i_bin = i < (i_cal - diff) ? 1.0 : 0.0;
   m_bin = m < (m_cal - diff) ? 1.0 : 0.0;
   r_bin = r < (r_cal - diff) ? 1.0 : 0.0;
-  p_bin = p < (p_cal - diff) ? 1.0 : 0.0;
-
+  p_bin = p < (p_cal - p_diff) ? 1.0 : 0.0;
   
   int at_flag = 0;
   int i_flag = 0;
@@ -151,8 +152,18 @@ void loop() {
   if(m_bin) { m_flag = 1; }
   if(r_bin) { r_flag = 1; }
   if(p_bin) { p_flag = 1; }
+  
+  int d3 = digitalRead(3);
+  int d4 = digitalRead(4);
+  int v_flag = 1;
+  if (d3 == 0) {
+    v_flag = 2;
+  }
+  if (d4 == 0) {
+    v_flag = 0;
+  }
 
-  sprintf(output_arr, "%03d %03d %03d %d %d %d %d %d", x_out, y_out, z_out, i_flag, m_flag, r_flag, p_flag, at_flag);
+  sprintf(output_arr, "%03d %03d %03d %d %d %d %d %d %d", x_out, y_out, z_out, i_flag, m_flag, r_flag, p_flag, at_flag, v_flag);
   Serial.println(output_arr);
   
   radio.write(&output_arr, sizeof(output_arr));
