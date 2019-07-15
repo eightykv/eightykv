@@ -313,9 +313,6 @@ void checkSensors() {
             if (tempoCount < 4) {
               calcTempo();
             }
-            else if (lastKnock != 0 && (millis() - lastKnock) > maxWait) {
-              clearTempo();
-            }
             break;
           case 7:
             samples->sendSample();
@@ -329,5 +326,10 @@ void checkSensors() {
         }
       }
     }
+  }
+
+  // If it's been more than 4 seconds, clear the tap tempo
+  if (lastKnock != 0 && (millis() - lastKnock) > maxWait) {
+    clearTempo();
   }
 } // end checkSensors
