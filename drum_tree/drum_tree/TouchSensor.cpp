@@ -93,8 +93,6 @@ bool TouchSensor::getElectrodeOn(int index, int drumIndex) {
     for (int i = 0; i < 3; i++) {
       int currIndex = baseIndex + i;
       if (currIndex != index) {
-        Serial.print("turning off ");
-        Serial.println(currIndex);
         electrodeOn[currIndex] = false;
       }
     }

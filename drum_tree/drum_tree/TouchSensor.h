@@ -8,7 +8,7 @@
 
 // 12 electrodes -- this needs to be available gloablly
 const byte numElectrodes = 12;
-const int threshold = 15;
+const int threshold = 30;
 
 class TouchSensor
 {
