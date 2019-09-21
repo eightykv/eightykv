@@ -21,8 +21,8 @@ int at = 0;
 long ms;
 int vox;
 
-double diff = 20;
-double p_diff = 15;
+double diff = 35;
+double p_diff = 30;
 boolean calibrate;
 double i_cal, m_cal, r_cal, p_cal;
 double i, m, r, p, i_bin, m_bin, r_bin, p_bin, p_on = false;
