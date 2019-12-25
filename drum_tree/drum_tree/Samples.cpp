@@ -25,5 +25,5 @@ void Samples::sampleReset() {
   if (Utility::debug) {
     Serial.println("Samples: Resetting");
   }
-  counter = 0;
+  //counter = 0;
 }
