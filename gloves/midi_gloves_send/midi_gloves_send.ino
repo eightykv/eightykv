@@ -5,12 +5,18 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
+#include "Adafruit_MPR121.h"
 
 RF24 radio(7, 8); // CE, CSN
 const byte address[6] = "00001";
 #define BNO055_SAMPLERATE_DELAY_MS (100)
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55);
+Adafruit_MPR121 cap = Adafruit_MPR121();
+
+#ifndef _BV
+#define _BV(bit) (1 << (bit)) 
+#endif
 
 float x, y, z;
 float prev_x, prev_y, prev_z;
@@ -35,7 +41,7 @@ byte binary = 0;
 byte output_table[4] = {0x00, 0x10, 0x20, 0x30};
 String output;
 int x_out, y_out, z_out;
-char output_arr[29];
+char output_arr[64];
 
 void setup() {
   Serial.begin(57600);
@@ -54,11 +60,12 @@ void setup() {
 
   delay(1000);
 
-  /* Display some basic information on this sensor */
-  //displaySensorDetails();
-
-  /* Optional: Display current status */
-  //displaySensorStatus();
+  // Setup capacitance
+  if (!cap.begin(0x5A)) {
+    Serial.println("MPR121 not found, check wiring?");
+    while (1);
+  }
+  cap.setThresholds(10, 9);
 
   bno.setExtCrystalUse(true);  
   
@@ -119,7 +126,7 @@ void loop() {
   prev_y = y_out == 0 ? prev_y : y_out;
   prev_z = z_out == 0 ? prev_z : z_out;
 
-  /* Wait the specified delay before requesting nex data */
+  /* Wait the specified delay before requesting next data */
   
   i = (analogRead(A0));
   m = (analogRead(A1));
@@ -163,7 +170,15 @@ void loop() {
     v_flag = 0;
   }
 
-  sprintf(output_arr, "%03d %03d %03d %d %d %d %d %d %d", x_out, y_out, z_out, i_flag, m_flag, r_flag, p_flag, at_flag, v_flag);
+  // MPR data
+  int currtouched = cap.touched();
+  int t = 0;
+  if (currtouched & _BV(0)) {
+    t = 1;
+  }
+  int filt = cap.filteredData(0);
+
+  sprintf(output_arr, "%03d %03d %03d %d %d %d %d %d %d %d %03d", x_out, y_out, z_out, i_flag, m_flag, r_flag, p_flag, at_flag, v_flag, t, filt);
   Serial.println(output_arr);
   
   radio.write(&output_arr, sizeof(output_arr));
