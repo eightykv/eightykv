@@ -295,7 +295,7 @@ void checkSensors() {
       int drumIndex = ((i * numElectrodes) + electrodeChanged)/3;
       if (drumIndex < 5) {
         int newDensity = electrodeChanged % 3;
-        drums[drumIndex]->setDensity(newDensity, caps[i]->getElectrodeOn(electrodeChanged, drumIndex % 4));
+        drums[drumIndex]->setDensity(2 - newDensity, caps[i]->getElectrodeOn(electrodeChanged, drumIndex % 4));
       }
       else {
         // Controls start/stop, tap tempo, samples for backing tracks
@@ -313,9 +313,6 @@ void checkSensors() {
             if (tempoCount < 4) {
               calcTempo();
             }
-            else if (lastKnock != 0 && (millis() - lastKnock) > maxWait) {
-              clearTempo();
-            }
             break;
           case 7:
             samples->sendSample();
@@ -329,5 +326,10 @@ void checkSensors() {
         }
       }
     }
+  }
+
+  // If it's been more than 4 seconds, clear the tap tempo
+  if (lastKnock != 0 && (millis() - lastKnock) > maxWait) {
+    clearTempo();
   }
 } // end checkSensors
