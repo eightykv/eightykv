@@ -16,6 +16,9 @@ static bool arm_on_new[4] = {false, false, false, false};
  */
 class Active {
 private:
+  // Which arm did this correspond to?
+  int which_arm;
+  
   // To store the values when the toggle is initially set (for calculating the differential)
   int init_x;
   int init_y;
@@ -25,9 +28,9 @@ private:
   long clk;
 
 public:
-  Active();
+  Active(int which_arm);
 
-  void moveActive(int which_arm);
+  void moveActive();
 
 };
 

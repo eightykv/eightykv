@@ -14,7 +14,7 @@ Arm::Arm(int which_arm, int start_pin) {
   inactive = new Inactive();
 
   // Each arm has an Active object that manages active state movement
-  active = new Active();
+  active = new Active(which_arm);
 }
 
 void Arm::execute(int state, bool state_changed) {
@@ -123,7 +123,7 @@ void Arm::inactiveState(bool state_changed) {
 
 void Arm::activeState(bool state_changed) {
   // Generate the active move
-  active->moveActive(which_arm);
+  active->moveActive();
 
   // TODO update destination_pos
 }
