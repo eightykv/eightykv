@@ -3,10 +3,14 @@
 
 #include "Utility.h"
 #include "Inactive.h"
+#include "Active.h"
 #include <Servo.h>
 
 class Arm {
 private:
+  // Which arm is this (0-3)
+  int which_arm;
+  
   // Sleep state variables
 
   // Test state variables
@@ -20,6 +24,7 @@ private:
   int step_delay = 0;
 
   // Active state variables
+  Active *active;
 
   // Movement variables
   int current_pos[4] = {90, 90, 90, 90};
@@ -39,7 +44,7 @@ private:
 
 public:
   // Constructor
-  Arm(int start_pin);
+  Arm(int which_arm, int start_pin);
 
   // Executes the current state -- public function exposed for each arm
   void execute(int state, bool state_changed);

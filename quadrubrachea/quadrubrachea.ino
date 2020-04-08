@@ -1,5 +1,6 @@
 #include "Arm.h"
 #include "Utility.h"
+#include "Wireless.h"
 
 Arm *arms[NUM_ARMS];
 
@@ -11,12 +12,15 @@ void setup() {
   // No particular reason for 57600
   Serial.begin(57600);
 
+  // Setup the wireless communication
+  setupWireless();
+
   // Random seed
   randomSeed(analogRead(0));
 
   // Initialize the arms, which will initialize the servos
   for (int i = 0; i < NUM_ARMS; i++) {
-    arms[i] = new Arm(START_PINS[i]);
+    arms[i] = new Arm(i, START_PINS[i]);
   }
 }
 
@@ -71,6 +75,11 @@ void readInstructions() {
           break;
       }
     }
+  }
+
+  // If we're in the active state, read wireless data
+  if (state == ACTIVE) {
+    readWireless();
   }
 }
 
