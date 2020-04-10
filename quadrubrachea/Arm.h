@@ -40,14 +40,14 @@ private:
   void sleepState(bool state_changed);
   void testState(bool state_changed);
   void inactiveState(bool state_changed);
-  void activeState(bool state_changed);
+  void activeState(bool state_changed, activeData active_data);
 
 public:
   // Constructor
   Arm(int which_arm, int start_pin);
 
   // Executes the current state -- public function exposed for each arm
-  void execute(int state, bool state_changed);
+  void execute(int state, bool state_changed, activeData active_data);
   
 };
 

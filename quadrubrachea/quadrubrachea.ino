@@ -30,7 +30,7 @@ void loop() {
 
   // For each arm, execute the instructions
   for (int i = 0; i < NUM_ARMS; i++) {
-    arms[i]->execute(state, state_changed);
+    arms[i]->execute(state, state_changed, global_active_data);
   }
   
   state_changed = false;
@@ -50,26 +50,31 @@ void readInstructions() {
            * Arms curl in for easier transport
            */
           state = SLEEP;
+          dLog("SLEEP");
           break;
         case '1':
           /* TEST
            * Move each joint individually
            */
           state = TEST;
+          dLog("TEST");
           break;
         case '2':
           /* INACTIVE
            * Arms move in a pseudorandom pattern
            */
           state = INACTIVE;
+          dLog("INACTIVE");
           break;
         case '3':
           // ACTIVE
           state = ACTIVE;
+          dLog("ACTIVE");
           break;
         case '4':
           // FREEZE
           state = FREEZE;
+          dLog("FREEZE");
           break;
         default:
           break;

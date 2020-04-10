@@ -112,19 +112,9 @@ void loop() {
     }
   }
     
-  x_out = round((abs(180.0 - event.orientation.x)/180.0) * 127.0);
-  x_out = x_out == 0 ? prev_x : x_out;
-  x_out = x_out > 127.0 ? 127.0 : x_out;
-  y_out = round(abs(event.orientation.y/90.0) * 127.0);
-  y_out = y_out == 0 ? prev_y : y_out;
-  y_out = y_out > 127.0 ? 127.0 : y_out;
-  z_out = round(abs(event.orientation.z/90.0) * 127.0);
-  z_out = z_out == 0 ? prev_z : z_out;
-  z_out = z_out > 127.0 ? 127.0 : z_out;
-
-  prev_x = x_out == 0 ? prev_x : x_out;
-  prev_y = y_out == 0 ? prev_y : y_out;
-  prev_z = z_out == 0 ? prev_z : z_out;
+  x_out = round(event.orientation.x);
+  y_out = round(event.orientation.y);
+  z_out = round(event.orientation.z);
 
   /* Wait the specified delay before requesting next data */
   
@@ -178,7 +168,7 @@ void loop() {
   }
   int filt = cap.filteredData(0);
 
-  sprintf(output_arr, "%03d %03d %03d %d %d %d %d %d %d %d %03d", x_out, y_out, z_out, i_flag, m_flag, r_flag, p_flag, at_flag, v_flag, t, filt);
+  sprintf(output_arr, "%03d %04d %04d %d %d %d %d %d %d %d %03d", x_out, y_out, z_out, i_flag, m_flag, r_flag, p_flag, at_flag, v_flag, t, filt);
   Serial.println(output_arr);
   
   radio.write(&output_arr, sizeof(output_arr));

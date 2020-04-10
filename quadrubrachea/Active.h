@@ -3,13 +3,6 @@
 
 #include "Utility.h"
 
-static int x;
-static int y;
-static int z;
-
-static bool arm_on[4] = {false, false, false, false};
-static bool arm_on_new[4] = {false, false, false, false};
-
 /*
  * The Active class handles receiving data from the external inputs and 
  * translating it into motion
@@ -20,9 +13,7 @@ private:
   int which_arm;
   
   // To store the values when the toggle is initially set (for calculating the differential)
-  int init_x;
-  int init_y;
-  int init_z;
+  int init_x, init_y, init_z;
 
   long init_clock;
   long clk;
@@ -30,7 +21,7 @@ private:
 public:
   Active(int which_arm);
 
-  void moveActive();
+  int* moveActive(int x, int y, int z, bool new_on);
 
 };
 

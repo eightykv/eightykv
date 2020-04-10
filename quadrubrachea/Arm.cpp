@@ -17,7 +17,7 @@ Arm::Arm(int which_arm, int start_pin) {
   active = new Active(which_arm);
 }
 
-void Arm::execute(int state, bool state_changed) {
+void Arm::execute(int state, bool state_changed, activeData active_data) {
   if (state_changed) {
     clk = millis();
   }
@@ -33,7 +33,7 @@ void Arm::execute(int state, bool state_changed) {
       inactiveState(state_changed);
       break;
     case ACTIVE:
-      activeState(state_changed);
+      activeState(state_changed, active_data);
       break;
     case FREEZE:
       break;
@@ -121,11 +121,37 @@ void Arm::inactiveState(bool state_changed) {
   }
 }
 
-void Arm::activeState(bool state_changed) {
-  // Generate the active move
-  active->moveActive();
+void Arm::activeState(bool state_changed, activeData active_data) {
+  if (state_changed) {
+    // Small move delay for active state
+    for (int i = 0; i < NUM_JOINTS; i++) {
+      move_delay[i] = 10;
+    }
+  }
 
-  // TODO update destination_pos
+  if (active_data.arm_on[which_arm]) {
+    // Generate the active move
+    int* offsets = active->moveActive(
+      active_data.x, 
+      active_data.y, 
+      active_data.z, 
+      active_data.arm_on_new[which_arm]
+    );
+  
+    // Update destination_pos using that data
+    for (int i = 0; i < NUM_JOINTS; i++) {
+      int npos = current_pos[i] + *(offsets + i);
+      npos = npos < 0 ? 0 : npos;
+      npos = npos > JOINT_ROM[i] ? JOINT_ROM[i] : npos;
+      destination_pos[i] = npos;
+    }
+  }
+  // If this arm isn't on, freeze it in place
+  else {
+    for (int i = 0; i < NUM_JOINTS; i++) {
+      destination_pos[i] = current_pos[i];
+    }
+  }
 }
 
 void Arm::moveArm() {
