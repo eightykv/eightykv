@@ -12,11 +12,21 @@ private:
   // Which arm did this correspond to?
   int which_arm;
   
-  // To store the values when the toggle is initially set (for calculating the differential)
+  // Stores the values when the toggle is initially set (for calculating the differential)
   int init_x, init_y, init_z;
 
-  long init_clock;
+  // Tracks how long we've been moving in a particular direction
+  int pos_tics = 0;
+  int neg_tics = 0;
+  int num_tics = 4; // How many tics before we start moving joint 1?
+
   long clk;
+
+  // Helper functions to calculate the offsets for each joint
+  int calc0(int x);
+  int calc1(int y);
+  int calc2(int y);
+  int calc3(int z);
 
 public:
   Active(int which_arm);
