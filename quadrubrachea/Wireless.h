@@ -14,13 +14,13 @@ void processData() {
   String data = String(wireless_data);
   
   String x_str = data.substring(0, 3);
-  global_active_data.x = x_str.toInt();
+  global_active_data.xyz[0] = x_str.toInt();
   
   String y_str = data.substring(4, 8);
-  global_active_data.y = y_str.toInt();
+  global_active_data.xyz[1] = y_str.toInt();
   
   String z_str = data.substring(9, 13);
-  global_active_data.z = z_str.toInt();
+  global_active_data.xyz[2] = z_str.toInt();
 
   // Figure out which arms are active
   char i_str = data.charAt(14);
@@ -41,12 +41,9 @@ void processData() {
     else {
       global_active_data.arm_on_new[i] = false;
     }
-    Serial.print(imrp[i]);
-    Serial.print(" ");
     global_active_data.arm_on[i] = imrp[i] == 1;
     
   }
-  Serial.println();
 }
 
 void setupWireless() {

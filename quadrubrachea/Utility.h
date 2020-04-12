@@ -22,9 +22,7 @@ const int ACTIVE = 3;
 const int FREEZE = 4;
 
 struct activeData {
-  int x;
-  int y;
-  int z;
+  int xyz[3];
   bool arm_on[4];
   bool arm_on_new[4];
 };

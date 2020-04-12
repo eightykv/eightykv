@@ -48,7 +48,7 @@ void Arm::execute(int state, bool state_changed, activeData active_data) {
 void Arm::sleepState(bool state_changed) {
   if (state_changed) {
     for (int i = 0; i < NUM_JOINTS; i++) {
-      destination_pos[i] = 0;
+      destination_pos[i] = 90;
       move_delay[i] = 20; // TODO: Slow down delay as it "goes to sleep"?
     }
   }
@@ -125,16 +125,14 @@ void Arm::activeState(bool state_changed, activeData active_data) {
   if (state_changed) {
     // Small move delay for active state
     for (int i = 0; i < NUM_JOINTS; i++) {
-      move_delay[i] = 10;
+      move_delay[i] = 20;
     }
   }
 
   if (active_data.arm_on[which_arm]) {
     // Generate the active move
     int* offsets = active->moveActive(
-      active_data.x, 
-      active_data.y, 
-      active_data.z, 
+      active_data.xyz,
       active_data.arm_on_new[which_arm]
     );
   
