@@ -18,7 +18,7 @@ private:
   
   // Inactive state variables
   Inactive *inactive;
-  long clk = -1;
+  long clk[4] = {-1, -1, -1, -1};
   long interval_clk = -1;
   int interval = 5000;
   int step_delay = 0;
@@ -27,7 +27,7 @@ private:
   Active *active;
 
   // Movement variables
-  int current_pos[4] = {90, 90, 90, 90};
+  int current_pos[4] = {80, 80, 80, 90};
   int destination_pos[4] = {90, 90, 90, 90}; 
   int move_delay[4] = {20, 20, 20, 20};
   

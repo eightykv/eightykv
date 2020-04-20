@@ -26,7 +26,7 @@ int* Active::moveActive(int xyz[3], bool new_on) {
     clk = millis();
 
     // Calculate the offsets
-    offsets[0] = calcOffset(xyz[0], prev_xyz[0], init_xyz[0], 30);
+    offsets[0] = 0 - calcOffset(xyz[0], prev_xyz[0], init_xyz[0], 30);
     offsets[1] = calcOffset(xyz[1], prev_xyz[1], init_xyz[1], 60);
     offsets[2] = calcOffset(xyz[1], prev_xyz[1], init_xyz[1], 30);
     offsets[3] = calcOffset(xyz[2], prev_xyz[2], init_xyz[2], 30);

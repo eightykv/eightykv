@@ -12,6 +12,7 @@ char wireless_data[64];
 
 void processData() {
   String data = String(wireless_data);
+  Serial.println(data);
   
   String x_str = data.substring(0, 3);
   global_active_data.xyz[0] = x_str.toInt();

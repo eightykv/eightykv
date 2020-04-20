@@ -15,6 +15,7 @@ const int JOINT_ROM[NUM_JOINTS] = {180, 180, 180, 180};
 const int START_PINS[NUM_ARMS] = {22/*, 28, 34, 40*/};
 
 // State variables
+const int OFF = -1;
 const int SLEEP = 0;
 const int TEST = 1;
 const int INACTIVE = 2;

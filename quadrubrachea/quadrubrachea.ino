@@ -5,7 +5,7 @@
 Arm *arms[NUM_ARMS];
 
 // Initialize in SLEEP state
-int state = SLEEP;
+int state = OFF;
 bool state_changed = false;
 
 void setup() {
