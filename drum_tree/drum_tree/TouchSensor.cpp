@@ -61,11 +61,18 @@ int TouchSensor::readTouchData() {
       Serial.print(" ");*/
       //Serial.print(abs(baseline - filtered));
       //Serial.print(" ");
+      int thr = threshold;
+
+      // Higher threshold for sampler because it tends to be noisy
+      if (address == 0x5B && i > 6) {
+        thr = sampThreshold;
+      }
       if (abs(baseline - filtered) > threshold) {
         touch = true;
       }
       
       if (touch) {
+        // Wait a certain amount of time before allowing a retrigger
         if ((address == 0x5B && i > 2 && ((i == 6 && elapsed[i] > minTempo) || elapsed[i] > padWait)) || (elapsed[i] > waitTime)) {
           elapsed[i] = 0;
           electrodeOn[i] = !electrodeOn[i];
