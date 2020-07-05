@@ -9,7 +9,7 @@ String data;
 char data_arr[64];
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(57600);
   // Setup NRF
   radio.begin();
   radio.openReadingPipe(0, address);
