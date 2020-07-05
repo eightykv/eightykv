@@ -268,6 +268,7 @@ void checkSensors() {
   float tempFX = analogRead(fxPin) / 1024.0;
   if (abs(tempFX - fx) > 0.02) {
     fx = tempFX;
+    Serial.print("fx ");
     Serial.println(fx);
   }
 
