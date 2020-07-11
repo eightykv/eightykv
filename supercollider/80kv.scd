@@ -2,25 +2,40 @@ s.boot;
 
 s.doWhenBooted({
   {
-    [0, 1, 2, 3].do {
+    (0..3).do {
       |i|
       // Need this to let me stagger the timing of initial code execution
       switch (i,
+        // First load the buffers and define the busses
         0, {
-          // First load the buffers and define the busses
           ~drums = [];
           {
-            [0, 1, 2, 3, 4].do {
+            (0..4).do {
               |i|
               ~drums = ~drums.add(Buffer.read(s, thisProcess.nowExecutingPath.dirname ++ "/sounds/drum" ++ i ++ ".wav"););
               0.125.wait;
             }
           }.fork();
 
+          ~samples = [];
+          {
+            (0..9).do {
+              |i|
+              // Load up to 10 samples
+              //try {
+                ~samples = ~samples.add(Buffer.read(s, thisProcess.nowExecutingPath.dirname ++ "/sounds/sample" ++ i ++ ".wav"););
+              /*} { |error|
+                ("Failed to load sample" + i).postln;
+              };*/
+              0.125.wait;
+            }
+          }.fork();
+
+
           // Drumtree busses
           ~drum_bus = Bus.control(s, 5);
           ~fx_bus = Bus.control(s);
-          ~sample_bus = Bus.control(s);
+          ~sample_bus = Bus.audio(s);
 
           // Gloves busses
           ~x_bus = Bus.control(s);
@@ -34,8 +49,9 @@ s.doWhenBooted({
           ~touch_onoffbus = Bus.control(s);
           ~touch_numericbus = Bus.control(s);
         },
+
+        // Next initialize the SerialPort objects and begin the input routines
         1, {
-          // Next initialize the SerialPort objects and begin the input routines
           // Drumtree: Three output busses: a 5-channel one containing the data from each
           // "limb", and two one-channel ones for the FX and samplers
           ~drumtree = SerialPort.new("COM4", 57600);
@@ -65,7 +81,7 @@ s.doWhenBooted({
                     ~fx_bus.set(fx);
                   },
                   {
-                    ~sample_bus.set(str.asInteger);
+                    {Out.ar(~sample_bus, PlayBufCF.ar(1, ~samples[str.asInteger]))}.play;
                   });
                 });
               });
@@ -107,23 +123,38 @@ s.doWhenBooted({
             };
           }).play;
         },
+
+        // Then create SynthDefs
         2, {
-          // Then create SynthDefs
-          SynthDef(\drumtree, {arg distort = 0;
+          SynthDef(\drumtree, { |distort = 0.5|
             var signal, in_trig, bit_depth, amp;
             bit_depth = 1 - (3 + (distort * 13));
             in_trig = InTrig.kr( ~drum_bus, 5 );
             amp = 0.1 + (0.4 * distort);
-            for (0, 4, {arg i;
+            for (0, 4, { |i|
               signal = (PlayBufCF.ar(2, ~drums[i], 1, in_trig[i]) * amp).round(2**(bit_depth));
               Out.ar(0, Pan2.ar(signal, 0));
             })
           }).add;
+
+          SynthDef(\drumtree_sampler, { |distort = 0.5|
+
+            var signal, in_trig, bit_depth, amp;
+            bit_depth = 1 - (3 + (distort * 13));
+            amp = 0.1 + (0.4 * distort);
+            signal = (In.ar(~sample_bus) * amp).round(2**(bit_depth));
+            //signal = In.ar(~sample_bus);
+            Out.ar(0, Pan2.ar(signal, 0));
+          }).add;
         },
+
+        // Finally, create and map synths
         3; {
-          // Finally, create and map synths
           ~drum_synth = Synth(\drumtree);
           ~drum_synth.map(\distort, ~fx_bus.index);
+
+          ~sampler_synth = Synth(\drumtree_sampler);
+          ~sampler_synth.map(\distort, ~fx_bus.index);
         }
       );
       // Wait half a second between each step to give it time to process
@@ -132,7 +163,6 @@ s.doWhenBooted({
   }.fork();
 });
 
-/*
 s.quit({
   ~dtr.stop;
   ~drums.do({arg item; item.free;});
@@ -140,6 +170,7 @@ s.quit({
   ~fx_bus.free;
   ~sample_bus.free;
   ~drum_synth.free;
+  ~sampler_synth.free;
   ~drumtree.close;
   ~gr.stop;
   ~x_bus.free;
@@ -153,4 +184,4 @@ s.quit({
   ~touch_onoffbus.free;
   ~touch_numericbus.free;
   ~gloves.close;
-});*/
+});
