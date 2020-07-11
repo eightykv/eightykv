@@ -22,11 +22,7 @@ s.doWhenBooted({
             (0..9).do {
               |i|
               // Load up to 10 samples
-              //try {
                 ~samples = ~samples.add(Buffer.read(s, thisProcess.nowExecutingPath.dirname ++ "/sounds/sample" ++ i ++ ".wav"););
-              /*} { |error|
-                ("Failed to load sample" + i).postln;
-              };*/
               0.125.wait;
             }
           }.fork();
