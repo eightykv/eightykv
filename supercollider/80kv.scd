@@ -17,12 +17,27 @@ s.doWhenBooted({
             }
           }.fork();
 
+          // Drumtree busses
           ~drum_bus = Bus.control(s, 5);
           ~fx_bus = Bus.control(s);
           ~sample_bus = Bus.control(s);
+
+          // Gloves busses
+          ~x_bus = Bus.control(s);
+          ~y_bus = Bus.control(s);
+          ~z_bus = Bus.control(s);
+          ~i_bus = Bus.control(s);
+          ~m_bus = Bus.control(s);
+          ~r_bus = Bus.control(s);
+          ~p_bus = Bus.control(s);
+          ~at_bus = Bus.control(s);
+          ~touch_onoffbus = Bus.control(s);
+          ~touch_numericbus = Bus.control(s);
         },
         1, {
           // Next initialize the SerialPort objects and begin the input routines
+          // Drumtree: Three output busses: a 5-channel one containing the data from each
+          // "limb", and two one-channel ones for the FX and samplers
           ~drumtree = SerialPort.new("COM4", 57600);
 
           ~dtr = Routine({
@@ -57,6 +72,40 @@ s.doWhenBooted({
             };
           }).play;
 
+          // Gloves:
+          ~gloves = SerialPort.new("COM9", 57600);
+
+          ~gr = Routine({
+            var byte, str, res;
+            inf.do{|i|
+              if(~gloves.read == 10, {
+                str = "";
+                while({byte = ~gloves.read; byte != 13 }, {
+                  str = str ++ byte.asAscii;
+                });
+
+                res = str.split($ );
+
+                res.do({arg item, count;
+                  res.put(count, item.asInteger);
+                });
+
+                // Set the busses
+                if (res.size >= 10) {
+                  ~x_bus.set(res[0]);
+                  ~y_bus.set(res[1]);
+                  ~z_bus.set(res[2]);
+                  ~i_bus.set(res[3]);
+                  ~m_bus.set(res[4]);
+                  ~r_bus.set(res[5]);
+                  ~p_bus.set(res[6]);
+                  ~at_bus.set(res[7]);
+                  ~touch_onoffbus.set(res[8]);
+                  ~touch_numericbus.set(res[9]);
+                }
+              });
+            };
+          }).play;
         },
         2, {
           // Then create SynthDefs
@@ -77,48 +126,31 @@ s.doWhenBooted({
           ~drum_synth.map(\distort, ~fx_bus.index);
         }
       );
-      // Wait half a second between each step
+      // Wait half a second between each step to give it time to process
       0.5.wait;
     }
   }.fork();
 });
 
 /*
- * GLOVES
- *
- *
- */
-(
-~gloves = SerialPort.new("COM9", 57600);
-
-~gr = Routine({
-  var byte, str, res;
-  inf.do{|i|
-    if(~gloves.read == 10, {
-      str = "";
-      while({byte = ~gloves.read; byte != 13 }, {
-        str = str ++ byte.asAscii;
-      });
-
-      res = str.split($ );
-
-      res.do({arg item, count;
-        res.put(count, item.asInteger);
-      });
-    });
-  };
-}).play;
-)
-
-
 s.quit({
   ~dtr.stop;
-  ~gr.stop;
   ~drums.do({arg item; item.free;});
   ~drum_bus.free;
   ~fx_bus.free;
   ~sample_bus.free;
-  //~gloves.close;
-  ~drumtree.close;
   ~drum_synth.free;
-});
+  ~drumtree.close;
+  ~gr.stop;
+  ~x_bus.free;
+  ~y_bus.free;
+  ~z_bus.free;
+  ~i_bus.free;
+  ~m_bus.free;
+  ~r_bus.free;
+  ~p_bus.free;
+  ~at_bus.free;
+  ~touch_onoffbus.free;
+  ~touch_numericbus.free;
+  ~gloves.close;
+});*/
