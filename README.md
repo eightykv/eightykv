@@ -10,5 +10,8 @@ The drumtree is a parameterized random rhythm generator. It creates beats accord
 ## Quadrubrachea
 This project builds on the existing gloves, using their data to control a set of servo motors that will form four robotic arms. This is a work in progress.
 
+## Supercollider
+This project contains the WIP code changing from Pure Data to SuperCollider. This is the one under the most active development.
+
 ## Other stuff?
-There may be other random or discontinued projects in the repo, but those three are the ones under active development.
+There may be other random or discontinued projects in the repo, but those three are the ones being maintained.
