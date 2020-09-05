@@ -1,7 +1,8 @@
 #include "Arm.h"
 
-Arm::Arm(int which_arm, int start_pin) {
+Arm::Arm(int which_arm) {
   // Store which arm this is
+  int start_pin = START_PINS[which_arm];
   this->which_arm = which_arm;
   
   // Attach each servo to its respective pin
@@ -19,14 +20,10 @@ Arm::Arm(int which_arm, int start_pin) {
 
 void Arm::execute(int state, bool state_changed, activeData active_data) {
   if (state_changed) {
-    for (int i = 0; i < NUM_JOINTS; i++) {
-      clk[i] = millis();
-    }
+    clk = millis();
   }
   
   switch (state) {
-    case OFF:
-      break;
     case SLEEP:
       sleepState(state_changed);
       break;
@@ -45,24 +42,20 @@ void Arm::execute(int state, bool state_changed, activeData active_data) {
       dLog("Unexpected state");
       break;
   }
-
-  if (state != OFF) {
-    moveArm();
-  }
+  
+  moveArm();
 }
 
 void Arm::sleepState(bool state_changed) {
+  destination_pos[0] = 90;
+  destination_pos[1] = 120;
+  destination_pos[2] = 179;
+  destination_pos[3] = 120;
+ 
   
-    move_delay[0] = 60;
-    move_delay[1] = 100;
-    move_delay[2] = 60;
-    move_delay[3] = 40;
-    
-  if (state_changed) {
-    for (int i = 0; i < NUM_JOINTS; i++) {
-      destination_pos[i] = 90;
-      //move_delay[i] = 20; // TODO: Slow down delay as it "goes to sleep"?
-    }
+  for (int i = 0; i < NUM_JOINTS; i++) {
+    //destination_pos[i] = 90;
+    move_delay[i] = 20; // TODO: Slow down delay as it "goes to sleep"?
   }
 }
 
@@ -72,8 +65,8 @@ void Arm::sleepState(bool state_changed) {
 void Arm::testState(bool state_changed) {
   if (state_changed) {
     for (int i = 0; i < NUM_JOINTS; i++) {
-      destination_pos[i] = JOINT_ROM[i];
-      move_delay[i] = 20;
+      destination_pos[i] = (which_arm == 1 || which_arm == 2) ? 0 : 180;
+      move_delay[i] = 30;
     }
   }
 
@@ -87,7 +80,7 @@ void Arm::testState(bool state_changed) {
   // First go to the maximum position, then the minimum, then end in the middle
   if (advance) {
     for (int i = 0; i < NUM_JOINTS; i++) {
-      destination_pos[i] = destination_pos[i] == JOINT_ROM[i] ? 0 : round(JOINT_ROM[i] / 2);
+      destination_pos[i] = (destination_pos[i] >= 179) ? 180 : 90;
     }
   }
 }
@@ -97,7 +90,7 @@ void Arm::inactiveState(bool state_changed) {
 
   // If this is new, setup clocks and pick a new motion
   if (state_changed) {
-    interval_clk = millis();
+    interval_clk = clk = millis();
     new_motion = true;
   }
 
@@ -107,7 +100,7 @@ void Arm::inactiveState(bool state_changed) {
     new_motion = true;
     interval = 5000 + random(-4000, 2000);
   }
-/*
+
   // If it's time to take the next step, do it
   if (millis() - clk >= step_delay) {
     // If we're advancing to a new motion, reset the clock
@@ -130,20 +123,15 @@ void Arm::inactiveState(bool state_changed) {
     // Set the delays
     move_delay[j] = next_step.move_delay;
     step_delay = next_step.step_delay;
-  }*/
+  }
 }
 
 void Arm::activeState(bool state_changed, activeData active_data) {
   if (state_changed) {
     // Small move delay for active state
-    move_delay[0] = 60;
-    move_delay[1] = 90;
-    move_delay[2] = 60;
-    move_delay[3] = 40;
-    /*
     for (int i = 0; i < NUM_JOINTS; i++) {
       move_delay[i] = 20;
-    }*/
+    }
   }
 
   if (active_data.arm_on[which_arm]) {
@@ -152,25 +140,20 @@ void Arm::activeState(bool state_changed, activeData active_data) {
       active_data.xyz,
       active_data.arm_on_new[which_arm]
     );
-
-    // Don't move joint 1 unless joint 2 is maxed out
-    /*
-    if (current_pos[2] > 0 && current_pos[2] < JOINT_ROM[2]) {
-      offsets[1] = 0;
-    }*/
   
     // Update destination_pos using that data
     for (int i = 0; i < NUM_JOINTS; i++) {
-      int new_pos = current_pos[i] + *(offsets + i);
-      int max_pos = i > 0 ? round(JOINT_ROM[i] / 2) : JOINT_ROM[i];
-      new_pos = new_pos < 0 ? 0 : new_pos;
-      new_pos = new_pos > max_pos ? max_pos : new_pos;
-      destination_pos[i] = new_pos;
+      int npos = current_pos[i] + offsets[i];
+
+      // Invert X axis for left side arms
+      if (i == 0 && (which_arm == 1 || which_arm == 2)) {
+        npos = current_pos[i] - offsets[i];
+      }
       
-      Serial.print(new_pos);
-      Serial.print(" ");
+      npos = npos < 0 ? 0 : npos;
+      npos = npos > JOINT_ROM[i] ? JOINT_ROM[i] : npos;
+      destination_pos[i] = npos;
     }
-    Serial.println();
   }
   // If this arm isn't on, freeze it in place
   else {
@@ -190,14 +173,17 @@ void Arm::moveArm() {
     }
     
     // If we're moving...
-    if (current_pos[i] != destination_pos[i] && (millis() - clk[i]) > move_delay[i] ) {
-      clk[i] = millis();
+    if (current_pos[i] != destination_pos[i] && (millis() - clk) > move_delay[i] ) {
+      moved = true;
       
       // Increase or decrease depending on which direction we're moving
       current_pos[i] = current_pos[i] > destination_pos[i] ?
                        current_pos[i] - 1 : current_pos[i] + 1;
       joints[i].write(current_pos[i]);
     }
+  }
+  if (moved) {
+    clk = millis();
   }
 }
 

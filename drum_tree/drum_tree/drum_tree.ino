@@ -14,14 +14,14 @@ Samples *samples;
 // Configuration
 const int swingPin = 11;
 const int tempoPin = A3;
-const int randPin = A0;
+const int fxPin = A0;
 const int stopIndicatorPin = 51;
 const int onIndicatorPin = 52;
 const int swingIndicatorPin = 53;
 const int randIndicatorPin = 2;
 bool drumsOn;
 bool swing;
-float randomness;
+float fx;
 
 // Tempo
 const int tempoThreshold = 500;
@@ -69,31 +69,23 @@ void setup() {
   // Setup the pins
   pinMode(swingPin, INPUT);
   pinMode(tempoPin, INPUT);
-  pinMode(randPin, INPUT);
+  pinMode(fxPin, INPUT);
   pinMode(onIndicatorPin, OUTPUT);
   pinMode(swingIndicatorPin, OUTPUT);
   
-  // Check swing and randomness sensors
+  // Check swing and fx sensors
   swing = digitalRead(swingPin);
   setTempoWithSwing();
   
-  float tempRand = analogRead(randPin) / 1023.0;
-  //tempRand = ((float) tempRand) / 1023.0;
-  if (abs(tempRand - randomness) > 0.02) {
-    randomness = tempRand;
-    for (int i = 0; i < numDrums; i++) {
-      drums[i]->setRandomness(randomness);
-    }
-  }
-
+  fx = analogRead(fxPin) / 1024.0;
+  
   // Define/Initialize drums
   for (int i = 0; i < numDrums; i++) {
     int pin = 22 + i;
     pinMode(pin, OUTPUT);
-    drums[i] = new Drum(i, pin, swing, randomness);
+    drums[i] = new Drum(i, pin, swing, 0.3);
     
     // temp
-    drums[i]->setRandomness(0.1);
     d[i] = 0;
   }
 
@@ -265,20 +257,19 @@ void start() {
 void checkSensors() {
   digitalWrite(onIndicatorPin, drumsOn);
 
-  // Check swing and randomness sensors
+  // Check swing and FX sensors
   int tempSwing = digitalRead(swingPin);
   if (tempSwing != swing) {
     swing = tempSwing;
     setTempoWithSwing();
   }
 
-  float tempRand = analogRead(randPin) / 1023.0;
-  //tempRand = ((float) tempRand) / 1023.0;
-  if (abs(tempRand - randomness) > 0.02) {
-    randomness = tempRand;
-    for (int i = 0; i < numDrums; i++) {
-      drums[i]->setRandomness(randomness);
-    }
+
+  float tempFX = analogRead(fxPin) / 1024.0;
+  if (abs(tempFX - fx) > 0.02) {
+    fx = tempFX;
+    Serial.print("fx ");
+    Serial.println(fx);
   }
 
   // Check MPR121 sensors
@@ -314,13 +305,13 @@ void checkSensors() {
               calcTempo();
             }
             break;
-          case 7:
+          case 9:
             samples->sendSample();
             break;
           case 8:
             samples->goBack();
             break;
-          case 9:
+          case 7:
             samples->sampleReset();
             break;
         }

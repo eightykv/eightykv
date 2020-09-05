@@ -85,7 +85,7 @@ step Inactive::twitch() {
   // Weighted towards the furthest out
   int joint_probs[3] = {10, 33, 63};
   // Small position offset
-  int pos_offs[2] = {-6, 7};
+  int pos_offs[2] = {-3, 3};
   // Very short move delay
   int move_del[2] = {2, 5};
   // Short step delay
@@ -103,7 +103,7 @@ step Inactive::wave() {
   // Equal probabilities
   int joint_probs[3] = {25, 50, 75};
   // Large position offset
-  int pos_offs[2] = {-90, 91};
+  int pos_offs[2] = {-12, 12};
   // Long move delay
   int move_del[2] = {25, 55};
   // Short step delay
@@ -121,7 +121,7 @@ step Inactive::curl() {
   // Equal probabilities
   int joint_probs[3] = {5, 50, 75};
   // Medium position offset (always +)
-  int pos_offs[2] = {0, 41};
+  int pos_offs[2] = {0, 20};
   // Medium move delay
   int move_del[2] = {20, 25};
   // Short step delay
@@ -139,7 +139,7 @@ step Inactive::uncurl() {
   // Equal probabilities
   int joint_probs[3] = {5, 50, 75};
   // Medium position offset (always +)
-  int pos_offs[2] = {-41, 0};
+  int pos_offs[2] = {-20, 0};
   // Slow move delay
   int move_del[2] = {20, 25};
   // Short step delay

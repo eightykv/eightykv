@@ -9,6 +9,7 @@
 // 12 electrodes -- this needs to be available gloablly
 const byte numElectrodes = 12;
 const int threshold = 30;
+const int sampThreshold = 50;
 
 class TouchSensor
 {
@@ -32,7 +33,7 @@ class TouchSensor
     const int touchThreshold = 70;
     const int releaseThreshold = 35;
     const int capSenseInterval = 50;
-    const int waitTime = 1500;
+    const int waitTime = 500;
     const int padWait = 400;
     const int minTempo = 200;
 
