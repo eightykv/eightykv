@@ -6,7 +6,7 @@ Arm *arms[NUM_ARMS];
 
 // Initialize in SLEEP state
 int state = SLEEP;
-bool state_changed = false;
+bool state_changed = true;
 
 void setup() {
   // No particular reason for 57600
@@ -20,7 +20,7 @@ void setup() {
 
   // Initialize the arms, which will initialize the servos
   for (int i = 0; i < NUM_ARMS; i++) {
-    arms[i] = new Arm(i, START_PINS[i]);
+    arms[i] = new Arm(i);
   }
 }
 

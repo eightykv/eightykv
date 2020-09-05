@@ -12,7 +12,7 @@ const int NUM_JOINTS = 4;
 // Range of motion on each joint
 const int JOINT_ROM[NUM_JOINTS] = {180, 180, 180, 180};
 // Start pins on the Mega board
-const int START_PINS[NUM_ARMS] = {22/*, 28, 34, 40*/};
+const int START_PINS[NUM_ARMS] = {22, 28, 34, 40};
 
 // State variables
 const int SLEEP = 0;

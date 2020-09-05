@@ -57,7 +57,7 @@ int Active::calcOffset(int val, int prev_val, int &init_val, int toggle_val) {
   }
 
   if (same_dir || latest_change == 0) {
-    return floor(total_change / toggle_val);
+    return (0 - floor(total_change / toggle_val));
   }
   
   // Stop a motion by going in the opposite direction

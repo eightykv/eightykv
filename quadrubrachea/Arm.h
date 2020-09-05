@@ -27,8 +27,8 @@ private:
   Active *active;
 
   // Movement variables
-  int current_pos[4] = {90, 90, 90, 90};
-  int destination_pos[4] = {90, 90, 90, 90}; 
+  int current_pos[4] = {89, 119, 178, 119};
+  int destination_pos[4] = {90, 120, 179, 120}; 
   int move_delay[4] = {20, 20, 20, 20};
   
   // Array of servo "joints"
@@ -44,7 +44,7 @@ private:
 
 public:
   // Constructor
-  Arm(int which_arm, int start_pin);
+  Arm(int which_arm);
 
   // Executes the current state -- public function exposed for each arm
   void execute(int state, bool state_changed, activeData active_data);
