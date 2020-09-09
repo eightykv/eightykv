@@ -17,7 +17,7 @@ private:
   // Sleep state variables
 
   // Test state variables
-  int position_index = 0;
+  int position_index = 4;
   
   // Inactive state variables - per arm
   long clk = -1;

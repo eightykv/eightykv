@@ -59,7 +59,7 @@ void Arm::sleepState(bool state_changed) {
 }
 
 /*
- * Tests joint ROM
+ * Tests 
  */
 void Arm::testState(bool state_changed) {
   if (state_changed) {
