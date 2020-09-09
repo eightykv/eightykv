@@ -2,150 +2,63 @@
 #include "Arduino.h"
 
 Inactive::Inactive() {
-  
+  inactive_pos = random(num_positions);
+  inactive_changed = millis();
 }
 
-step Inactive::take_step(bool new_motion) {
-  if (new_motion) {
-    // If we're supposed to pick a new motion, do it here
-    int r = random(NUM_MOTIONS);
-    // Only 33% chance of picking the same motion
-    while (current_motion == r && random(100) > 33) {
-      r = random(NUM_MOTIONS);
+void Inactive::checkInactive(int which_arm, int current_pos[4], int destination_pos[4]) {
+  // Only do this processing if this arm isn't ready
+  if (!do_new_inactive_pos[which_arm]) {
+    // Determine whether we need to move to a new inactive position.
+    // If all joints are in position, this arm is ready
+    bool new_pos = true;
+    for (int i = 0; i < NUM_JOINTS; i++) {
+      if (current_pos[i] != destination_pos[i]) {
+        new_pos = false;
+      }
     }
-    current_motion = r;
+    // Debug printout
+    /*
+    if (new_pos && !do_new_inactive_pos[which_arm]) {
+      Serial.print("Arm ");
+      Serial.print(which_arm);
+      Serial.println(" ready");
+    }*/
+    do_new_inactive_pos[which_arm] |= new_pos; // Keep a record of which arms are ready
   }
-  switch (current_motion) {
-    case PAUSE:
-      if (new_motion) { dLog("PAUSE"); }
-      return pause();
-    case TWITCH:
-      if (new_motion) { dLog("TWITCH"); }
-      return twitch();
-    case WAVE:
-      if (new_motion) { dLog("WAVE"); }
-      return wave();
-    case CURL:
-      if (new_motion) { dLog("CURL"); }
-      return curl();
-    case UNCURL:
-      if (new_motion) { dLog("UNCURL"); }
-      return uncurl();
-    default:
-      break;
+
+  // If we're not already waiting...
+  if (inactive_wait < 0) {
+    // If all arms are in position, it's time to pick a new position
+    for (int i = 0; i < NUM_ARMS; i++) {
+      // If not all arms are in position yet, move on
+      if (!do_new_inactive_pos[which_arm]) {
+        return;
+      }
+    }
+    // Determine how long we're gonna wait
+    inactive_wait = random(inactive_wait_min, inactive_wait_max);
+    // Store the current time
+    inactive_changed = millis();
+    /*
+    Serial.print("Moving to new inactive position. Waiting ");
+    Serial.println(inactive_wait);*/
+  }
+  else if (millis() - inactive_changed > inactive_wait) {
+    // If the wait time has elapsed, it's time to pick a new position
+    inactive_pos = random(num_positions);
+    /*
+    Serial.print("New inactive position: ");
+    Serial.println(inactive_pos); */
+    // Reset the variables
+    inactive_wait = -1;
+    inactive_changed = millis();
+    for (int i = 0; i < NUM_ARMS; i++) {
+      do_new_inactive_pos[i] = false;
+    }
   }
 }
 
-step Inactive::makeStep(int joint_probs[3], int pos_offs[2], int move_del[2], int step_del[2]) {
-  step next_step;
-  
-  int r = random(100);
-  int j = -1;
-  if (r >= joint_probs[2]) { j = 3; }
-  else if (r < joint_probs[2] && r >= joint_probs[1]) { j = 2; }
-  else if (r < joint_probs[1] && r >= joint_probs[0]) { j = 1; }
-  else { j = 0; }
-  next_step.joint = j;
-
-  r = random(pos_offs[0], pos_offs[1]);
-  next_step.position_offset = r;
-
-  r = random(move_del[0], move_del[1]);
-  next_step.move_delay = r;
-  
-  r = random(step_del[0], step_del[1]);
-  next_step.step_delay = r;
-
-  return next_step;
+int Inactive::getJointPosition(int which_arm, int which_joint) {
+  return arm_positions[inactive_pos]->positions[which_arm][which_joint];
 }
-
-/*
- * PAUSE motion
- * Stop in place
- */
-step Inactive::pause() {
-  // Equal probability
-  int joint_probs[3] = {25, 50, 75};
-  // No position offset
-  int pos_offs[2] = {0, 0};
-  // Very long move delay
-  int move_del[2] = {1000, 1000};
-  // Very long step delay
-  int step_del[2] = {1000, 1000};
-  
-  // Make the step and return
-  return makeStep(joint_probs, pos_offs, move_del, step_del);
-}
-
-/*
- * TWITCH motion
- * Small, erratic movements, short delays
- */
-step Inactive::twitch() {
-  // Weighted towards the furthest out
-  int joint_probs[3] = {10, 33, 63};
-  // Small position offset
-  int pos_offs[2] = {-3, 3};
-  // Very short move delay
-  int move_del[2] = {2, 5};
-  // Short step delay
-  int step_del[2] = {50, 200};
-  
-  // Make the step and return
-  return makeStep(joint_probs, pos_offs, move_del, step_del);
-}
-
-/*
- * WAVE motion
- * Slowly move random joints
- */
-step Inactive::wave() {
-  // Equal probabilities
-  int joint_probs[3] = {25, 50, 75};
-  // Large position offset
-  int pos_offs[2] = {-12, 12};
-  // Long move delay
-  int move_del[2] = {25, 55};
-  // Short step delay
-  int step_del[2] = {100, 200};
-  
-  // Make the step and return
-  return makeStep(joint_probs, pos_offs, move_del, step_del);
-}
-
-/*
- * CURL motion
- * Slowly curls either inward or outward
- */
-step Inactive::curl() {
-  // Equal probabilities
-  int joint_probs[3] = {5, 50, 75};
-  // Medium position offset (always +)
-  int pos_offs[2] = {0, 20};
-  // Medium move delay
-  int move_del[2] = {20, 25};
-  // Short step delay
-  int step_del[2] = {20, 50};
-  
-  // Make the step and return
-  return makeStep(joint_probs, pos_offs, move_del, step_del);
-}
-
-/*
- * UNCURL motion
- * Slowly curls either inward or outward
- */
-step Inactive::uncurl() {
-  // Equal probabilities
-  int joint_probs[3] = {5, 50, 75};
-  // Medium position offset (always +)
-  int pos_offs[2] = {-20, 0};
-  // Slow move delay
-  int move_del[2] = {20, 25};
-  // Short step delay
-  int step_del[2] = {20, 50};
-  
-  // Make the step and return
-  return makeStep(joint_probs, pos_offs, move_del, step_del);
-}
-

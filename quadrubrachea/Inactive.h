@@ -3,13 +3,48 @@
 
 #include "Utility.h"
 
+// How many different positions can we cycle through?
+const int num_positions = 4;
+
 // Information on a single step to be taken by a single joint
-struct step {
-  int joint;            // Which joint is moving?
-  int position_offset;  // How far is it moving? (positive or negative offset from current position)
-  int move_delay;       // How fast is it moving? (smaller = faster)
-  int step_delay;       // How long until the next step?
+struct arm_position {
+  int positions[4][4];
 };
+// List of inactive positions
+const arm_position ap0 = {{
+  {90, 120, 179, 120}, // Arm 0 joints 0-3
+  {90, 120, 179, 120}, // Arm 1 joints 0-3
+  {90, 120, 179, 120}, // Arm 2 joints 0-3
+  {90, 120, 179, 120}  // Arm 3 joints 0-3
+}};
+const arm_position ap1 = {{
+  {90, 70, 120, 60},
+  {90, 70, 120, 60},
+  {90, 70, 120, 60},
+  {90, 70, 120, 60}
+}};
+const arm_position ap2 = {{
+  {40, 120, 20, 20},
+  {60, 90, 90, 90},
+  {60, 90, 90, 90},
+  {60, 90, 90, 90}
+}};
+const arm_position ap3 = {{
+  {100, 140, 110, 20},
+  {60, 90, 90, 90},
+  {60, 90, 90, 90},
+  {60, 90, 90, 90}
+}};
+const static arm_position *arm_positions[num_positions] = {&ap0, &ap1, &ap2, &ap3};
+const int MAX_INACTIVE_DELAY = 80;
+
+// Static because these need to be available across all arms
+static int inactive_pos = 0;
+static long inactive_changed;
+static bool do_new_inactive_pos[4] = {false, false, false, false};
+static int inactive_wait_min = 500;
+static int inactive_wait_max = 2000;
+static int inactive_wait = -1; // How long we hold this position before moving on
 
 /*
  * The Inactive class builds a "sequence" of semirandom moves based on a particular
@@ -18,30 +53,10 @@ struct step {
  */
 class Inactive {
 private:
-  // Bank of possible motions
-  static const int NUM_MOTIONS = 5;
-  static const int PAUSE = 0;
-  static const int TWITCH = 1;
-  static const int WAVE = 2;
-  static const int CURL = 3;
-  static const int UNCURL = 4;
-
-  // Motion functions
-  step makeStep(int joint_probs[3], int pos_offs[2], int move_del[2], int step_del[2]);
-  step pause();
-  step twitch();
-  step wave();
-  step curl();
-  step uncurl();
-
-  // The current motion
-  long current_motion;
-
 public:
   Inactive();
-
-  step take_step(bool new_motion);
-
+  void checkInactive(int which_arm, int current_pos[4], int destination_pos[4]);
+  int getJointPosition(int which_arm, int which_joint);
 };
 
 #endif

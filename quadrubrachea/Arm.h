@@ -6,6 +6,9 @@
 #include "Active.h"
 #include <Servo.h>
 
+// We actually only need one "Inactive" object
+static Inactive *inactive;
+
 class Arm {
 private:
   // Which arm is this (0-3)
@@ -14,10 +17,9 @@ private:
   // Sleep state variables
 
   // Test state variables
-  int cycle_num = -1;
+  int position_index = 0;
   
-  // Inactive state variables
-  Inactive *inactive;
+  // Inactive state variables - per arm
   long clk = -1;
   long interval_clk = -1;
   int interval = 5000;

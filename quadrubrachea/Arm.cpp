@@ -52,7 +52,6 @@ void Arm::sleepState(bool state_changed) {
   destination_pos[2] = 179;
   destination_pos[3] = 120;
  
-  
   for (int i = 0; i < NUM_JOINTS; i++) {
     //destination_pos[i] = 90;
     move_delay[i] = 20; // TODO: Slow down delay as it "goes to sleep"?
@@ -65,11 +64,12 @@ void Arm::sleepState(bool state_changed) {
 void Arm::testState(bool state_changed) {
   if (state_changed) {
     for (int i = 0; i < NUM_JOINTS; i++) {
-      destination_pos[i] = (which_arm == 1 || which_arm == 2) ? 0 : 180;
+      destination_pos[i] = arm_positions[position_index]->positions[which_arm][i];
       move_delay[i] = 30;
     }
   }
 
+/*
   // If all joints have reached their destination...
   bool advance = true;
   for (int i = 0; i < NUM_JOINTS; i++) {
@@ -82,47 +82,27 @@ void Arm::testState(bool state_changed) {
     for (int i = 0; i < NUM_JOINTS; i++) {
       destination_pos[i] = (destination_pos[i] >= 179) ? 180 : 90;
     }
-  }
+  }*/
 }
 
 void Arm::inactiveState(bool state_changed) {
-  bool new_motion = false;
-
-  // If this is new, setup clocks and pick a new motion
-  if (state_changed) {
-    interval_clk = clk = millis();
-    new_motion = true;
-  }
-
-  // If it's been longer than the set interval, pick a new motion
-  if (millis() - interval_clk > interval) {
-    // Do something new
-    new_motion = true;
-    interval = 5000 + random(-4000, 2000);
-  }
-
-  // If it's time to take the next step, do it
-  if (millis() - clk >= step_delay) {
-    // If we're advancing to a new motion, reset the clock
-    if (new_motion) {
-      interval_clk = millis();
+  // This checks if a new inactive position has been selected
+  inactive->checkInactive(which_arm, current_pos, destination_pos);
+  // Update the destination to match what's selected
+  for (int i = 0; i < NUM_JOINTS; i++) {
+    int joint_position = inactive->getJointPosition(which_arm, i);
+    if (destination_pos[i] != joint_position) {
+      destination_pos[i] = joint_position;
     }
-    
-    // Get the next step
-    step next_step = inactive->take_step(new_motion);
-
-    // Use the step to populate the position/delay arrays
-    int j = next_step.joint;
-    
-    // Get the new position; constrain by min/max
-    int new_pos = current_pos[j] + next_step.position_offset;
-    new_pos = max(new_pos, 0);
-    new_pos = min(new_pos, JOINT_ROM[j]);
-    destination_pos[j] = new_pos;
-
-    // Set the delays
-    move_delay[j] = next_step.move_delay;
-    step_delay = next_step.step_delay;
+    // Calculate the delay time -- motor moves faster if it has a
+    // long way to move, slower if it's almost at its destination
+    int diff = abs(current_pos[i] - destination_pos[i]);
+    if (diff > 50) {
+      move_delay[i] = 20; // smallest delay = fastest move
+    }
+    else {
+      move_delay[i] = 20 + ((1 - (diff / 50.0)) * MAX_INACTIVE_DELAY);
+    }
   }
 }
 
@@ -186,4 +166,3 @@ void Arm::moveArm() {
     clk = millis();
   }
 }
-
