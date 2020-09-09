@@ -12,6 +12,10 @@ void setup() {
   // No particular reason for 57600
   Serial.begin(57600);
 
+  // Pins to set the state
+  pinMode(ACTIVE_PIN, INPUT_PULLUP);
+  pinMode(INACTIVE_PIN, INPUT_PULLUP);
+
   // Setup the wireless communication
   setupWireless();
 
@@ -37,6 +41,36 @@ void loop() {
 }
 
 void readInstructions() {
+  int active_read = digitalRead(ACTIVE_PIN);
+  int inactive_read = digitalRead(INACTIVE_PIN);
+
+  // If the switch is newly on, change to ACTIVE
+  if (active_read == LOW && last_active_read == HIGH) {
+    dLog("ACTIVE FROM SWITCH");
+    state = ACTIVE;
+    state_changed = true;
+  }
+  // If the switch is newly off, go to sleep
+  if (active_read == HIGH && last_active_read == LOW) {
+    dLog("SLEEP FROM SWITCH");
+    state = SLEEP;
+    state_changed = true;
+  }
+  
+  if (inactive_read == LOW && last_inactive_read == HIGH) {
+    dLog("INACTIVE FROM SWITCH");
+    state = INACTIVE;
+    state_changed = true;
+  }
+  if (inactive_read == HIGH && last_inactive_read == LOW) {
+    dLog("SLEEP FROM SWITCH");
+    state = SLEEP;
+    state_changed = true;
+  }
+
+  last_active_read = active_read;
+  last_inactive_read = inactive_read;
+  
   if (Serial.available()) {
     // If we receive serial input from 0-3, use it to set the state
     char c = Serial.read();
@@ -87,4 +121,3 @@ void readInstructions() {
     readWireless();
   }
 }
-

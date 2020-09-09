@@ -14,6 +14,12 @@ const int JOINT_ROM[NUM_JOINTS] = {180, 180, 180, 180};
 // Start pins on the Mega board
 const int START_PINS[NUM_ARMS] = {22, 28, 34, 40};
 
+// Pins for the state
+const int ACTIVE_PIN = 6;
+const int INACTIVE_PIN = 5;
+static int last_active_read = HIGH;
+static int last_inactive_read = HIGH;
+
 // State variables
 const int OFF = -1;
 const int SLEEP = 0;
