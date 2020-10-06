@@ -110,7 +110,7 @@ void Arm::activeState(bool state_changed, activeData active_data) {
   if (state_changed) {
     // Small move delay for active state
     for (int i = 0; i < NUM_JOINTS; i++) {
-      move_delay[i] = 20;
+      move_delay[i] = 40;
     }
   }
 
@@ -126,7 +126,7 @@ void Arm::activeState(bool state_changed, activeData active_data) {
       int npos = current_pos[i] + offsets[i];
 
       // Invert X axis for left side arms
-      if (i == 0 && (which_arm == 1 || which_arm == 2)) {
+      if (i == 0 && (which_arm == 0 || which_arm == 3)) {
         npos = current_pos[i] - offsets[i];
       }
       
