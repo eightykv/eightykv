@@ -9,6 +9,8 @@ Arm::Arm(int which_arm) {
   // Joint 0 is base, joint 3 is tip
   for (int i = 0; i < NUM_JOINTS; i++) {
     joints[i].attach(start_pin + i);
+    current_pos[i] = SLEEP_POS[which_arm][i] - 1;
+    destination_pos[i] = SLEEP_POS[which_arm][i];
   }
 
   // Each arm has an Inactive object that manages idle state movement
@@ -47,13 +49,8 @@ void Arm::execute(int state, bool state_changed, activeData active_data) {
 }
 
 void Arm::sleepState(bool state_changed) {
-  destination_pos[0] = 90;
-  destination_pos[1] = 120;
-  destination_pos[2] = 179;
-  destination_pos[3] = 120;
- 
   for (int i = 0; i < NUM_JOINTS; i++) {
-    //destination_pos[i] = 90;
+    destination_pos[i] = SLEEP_POS[which_arm][i];
     move_delay[i] = 20; // TODO: Slow down delay as it "goes to sleep"?
   }
 }
@@ -68,21 +65,6 @@ void Arm::testState(bool state_changed) {
       move_delay[i] = 30;
     }
   }
-
-/*
-  // If all joints have reached their destination...
-  bool advance = true;
-  for (int i = 0; i < NUM_JOINTS; i++) {
-    if (current_pos[i] != destination_pos[i]) {
-      advance = false;
-    }
-  }
-  // First go to the maximum position, then the minimum, then end in the middle
-  if (advance) {
-    for (int i = 0; i < NUM_JOINTS; i++) {
-      destination_pos[i] = (destination_pos[i] >= 179) ? 180 : 90;
-    }
-  }*/
 }
 
 void Arm::inactiveState(bool state_changed) {
