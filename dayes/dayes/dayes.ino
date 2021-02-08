@@ -21,12 +21,16 @@ int tung_min_delay = 10;
 int tung_max_delay = 50;
 
 Servo wobble;
+int wob_i = 1;
+
 Servo tube;
+int tube_i = 2;
+
 Servo *servos[NUM_SERVOS];
 
 int pos[NUM_SERVOS] = {0, 0, 0};
 int goal[NUM_SERVOS] = {0, 0, 0};
-int del[NUM_SERVOS] = {30, 15, 15};
+int del[NUM_SERVOS] = {30, 15, 30};
 int increment[NUM_SERVOS] = {1, 1, 1};
 long last_update[NUM_SERVOS];
 
@@ -142,7 +146,6 @@ void updateTungGoal() {
 
 void updateWobbleGoal() {
   // Wobble: 0 to 180, moving pretty constantly, usually pretty slow but occasional quick sweep
-  int wob_i = 1; // wobble index
   if (goal[wob_i] == pos[wob_i]) {
     // If it was high before, go low. Else go high
     if (goal[wob_i] >= 90) {
@@ -165,7 +168,14 @@ void updateWobbleGoal() {
 
 void updateTubeGoal() {
   // Tube: 0 to 180, goes up and down quickly and settles into the middle
-  int tube_i = 2; // tube index
+  if (goal[tube_i] == pos[tube_i]) {
+    if (goal[tube_i] == 0) {
+      goal[tube_i] = 179;
+    }
+    else {
+      goal[tube_i] = 0;
+    }
+  }
 }
 
 static void dlog(int src, String msg) {
