@@ -1,7 +1,7 @@
-/*ServerOptions.devices
+//ServerOptions.devices
 o = Server.default.options;
-o.inDevice_("Focusrite USB ASIO");
-o.outDevice_("Focusrite USB ASIO");*/
+o.inDevice_("ASIO : Focusrite USB ASIO");
+o.outDevice_("ASIO : Focusrite USB ASIO");
 
 s.boot;
 
@@ -31,8 +31,6 @@ s.doWhenBooted({
               0.125.wait;
             }
           }.fork();
-
-          ~current_sample = ~samples[0];
 
           // Drumtree busses
           ~drum_bus = Bus.control(s, 5);
@@ -67,6 +65,9 @@ s.doWhenBooted({
 
         // Next initialize the SerialPort objects and begin the input routines
         1, {
+          // Initialize current_sample
+          ~current_sample = ~samples[0];
+
           // Drumtree: Three output busses: a 5-channel one containing the data from each
           // "limb", and two one-channel ones for the FX and samplers
           ~drumtree = SerialPort.new("COM4", 57600);
@@ -119,6 +120,7 @@ s.doWhenBooted({
                 while({byte = ~gloves.read; byte != 13 }, {
                   str = str ++ byte.asAscii;
                 });
+                str.postln;
 
                 res = str.split($ );
 
@@ -210,7 +212,7 @@ s.doWhenBooted({
             amp = 0.2 + (0.3 * distort);
             for (0, 4, { |i|
               signal = (PlayBufCF.ar(2, ~drums[i], 1, in_trig[i]) * amp).round(2**(bit_depth));
-              Out.ar(0, Pan2.ar(signal, 0));
+              Out.ar(0, Pan2.ar(signal * 0.6, 0));
             })
           }).add;
 
@@ -218,7 +220,7 @@ s.doWhenBooted({
           SynthDef(\drumtree_sampler, { |distort = 1|
             var signal, in_trig, bit_depth, amp;
             bit_depth = 1 - (3 + (distort * 13));
-            amp = 0.1 + (0.4 * distort);
+            amp = 0.3 + (0.4 * distort);
             signal = (In.ar(~sample_bus) * amp).round(2**(bit_depth));
             Out.ar(0, Pan2.ar(signal, 0));
           }).add;
@@ -272,7 +274,7 @@ s.doWhenBooted({
             // Signal
             sig = BufRd.ar(1, buf, Phasor.ar(Dust.ar(retrig), 1 - end_arg, start, end, start), 0) * env;
             // Output
-            Out.ar(0, Pan2.ar(sig * 0.5, 0));
+            Out.ar(0, Pan2.ar(sig * 0.75, 0));
           }).add;
 
           // wavetable
@@ -297,6 +299,11 @@ s.doWhenBooted({
             // Output
             Out.ar(0, Pan2.ar(sig2 * 0.2));
           }).add;
+
+          // Harp!
+          SynthDef(\harp, {
+            Out.ar(0, Pan2.ar(SoundIn.ar(0)));
+          }).add;
         },
 
         // Finally, create and map synths
@@ -320,18 +327,19 @@ s.doWhenBooted({
           ~static_synth.map(\noise_arg, ~y_bus.index);
 
           ~chop_sampler = Synth(\chop_sampler, [\buf, ~current_sample.bufnum]);
-          ~chop_sampler.map(\on, ~atr_bus.index);
+          ~chop_sampler.map(\on, ~p_bus.index);
           ~chop_sampler.map(\start_arg, ~x_bus.index);
           ~chop_sampler.map(\end_arg, ~y_bus.index);
           ~chop_sampler.map(\retrig_arg, ~z_bus.index);
 
           ~chorus_synth = Synth(\chorus);
-          ~chorus_synth.map(\on, ~natr_bus.index);
+          ~chorus_synth.map(\on, ~r_bus.index);
           ~chorus_synth.map(\freq_arg, ~x_bus.index);
           ~chorus_synth.map(\rev1_arg, ~z_bus.index);
           ~chorus_synth.map(\rev2_arg, ~z_bus.index);
           ~chorus_synth.map(\mix_arg, ~y_bus.index);
 
+          ~harp = Synth(\harp);
         }
       );
       // Wait half a second between each step to give it time to process
@@ -376,5 +384,6 @@ s.quit({
   ~static_synth.free;
   ~chop_sampler.free;
   ~chorus_synth.free;
+  ~harp.free;
   ~gloves.close;
 });
