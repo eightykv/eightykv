@@ -4,6 +4,9 @@
 long last_update;
 Breathe breathe;
 
+int led_colors[NUM_LEDS][3];
+Adafruit_NeoPixel leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
+
 #define UPDATES_PER_SECOND 100
 
 void setup() {
@@ -13,7 +16,6 @@ void setup() {
 
   breathe = *(new Breathe());
 
-  leds = new Adafruit_NeoPixel(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
   leds.begin();
 
   long ms = millis();
@@ -34,11 +36,13 @@ void loop()
 
   if (millis() - last_update > UPDATES_PER_SECOND) {
     leds.show();
+    last_update = millis();
   }
 }
 
 void fillLEDs () {
+  //Serial.println((String) led_colors[0][0] + ", " + led_colors[0][1] + ", " + led_colors[0][2]);
   for (int i = 0; i < NUM_LEDS; i++) {
-    leds.setPixelColor(i, led_colors[i][0], led_colors[i][1], led_colors[i][2]);
+    leds.setPixelColor(i, leds.Color(led_colors[i][0], led_colors[i][1], led_colors[i][2]));
   }
 }

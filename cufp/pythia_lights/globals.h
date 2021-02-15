@@ -8,8 +8,8 @@
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
 
-static int led_colors[NUM_LEDS][3];
+extern int led_colors[NUM_LEDS][3];
 
-static Adafruit_NeoPixel leds;
+extern Adafruit_NeoPixel leds;
 
 #endif
