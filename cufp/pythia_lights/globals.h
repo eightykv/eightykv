@@ -1,6 +1,7 @@
 #ifndef globals_h
 #define globals_h
 
+#include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
 
 #define LED_PIN     2
