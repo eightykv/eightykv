@@ -47,7 +47,7 @@ void setup() {
 
   for (int i = 0; i < NUM_STRIPS; i++) {
     lights[i]->begin();
-    lights[i]->setBrightness(128);
+    lights[i]->setBrightness(64);
     for (int j = 0; j < LED_COUNT; j++) {
       lights[i]->setPixelColor(j, lights[i]->Color(DEFAULT_COLOR[0], DEFAULT_COLOR[1], DEFAULT_COLOR[2]));
     }
