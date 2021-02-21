@@ -50,6 +50,9 @@ public:
 
   // Executes the current state -- public function exposed for each arm
   void execute(int state, bool state_changed, activeData active_data);
+
+  // For serial input: manually set destination
+  void setDestination(int joint, int destination);
   
 };
 

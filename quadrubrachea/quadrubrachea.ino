@@ -8,6 +8,10 @@ Arm *arms[NUM_ARMS];
 int state = SLEEP;
 bool state_changed = true;
 
+// To read from Serial
+const byte MAX_CHARS = 9;
+char in_buffer[MAX_CHARS];
+
 void setup() {
   // No particular reason for 57600
   Serial.begin(57600);
@@ -70,10 +74,39 @@ void readInstructions() {
 
   last_active_read = active_read;
   last_inactive_read = inactive_read;
-  
-  if (Serial.available()) {
-    // If we receive serial input from 0-3, use it to set the state
+
+  // If we're in the active state, read wireless data
+  if (state == ACTIVE) {
+    readWireless();
+  }
+
+  static int ndx = 0;
+  static bool new_data = false;
+  while (Serial.available() && !new_data) {
+    
     char c = Serial.read();
+    if (c != '\n' && ndx < MAX_CHARS) {
+      in_buffer[ndx] = c;
+      ndx++;
+    }
+    else {
+      in_buffer[ndx] = '\0';
+      new_data = true;
+    }
+  }
+  
+  if (new_data) {
+    int arm_num = in_buffer[0] - 48;
+    int joint_num = in_buffer[2] - 48;
+    int new_dest = atoi(in_buffer + 4);
+    Serial.println((String) "Arm num: " + arm_num + "; joint_num: " + joint_num + "; new destination: " + new_dest);
+    arms[arm_num]->setDestination(joint_num, new_dest);
+    new_data = false;
+    ndx = 0;
+  }
+
+    /*
+    // If we receive serial input from 0-3, use it to set the state
     if (c >= '0' && c <= '4') {
       state_changed = true;
       // I could replace this with one line of code
@@ -82,21 +115,21 @@ void readInstructions() {
         case '0':
           /* SLEEP
            * Arms curl in for easier transport
-           */
+           *
           state = SLEEP;
           dLog("SLEEP");
           break;
         case '1':
           /* TEST
            * Move each joint individually
-           */
+           *
           state = TEST;
           dLog("TEST");
           break;
         case '2':
           /* INACTIVE
            * Arms move in a pseudorandom pattern
-           */
+           *
           state = INACTIVE;
           dLog("INACTIVE");
           break;
@@ -113,11 +146,5 @@ void readInstructions() {
         default:
           break;
       }
-    }
-  }
-
-  // If we're in the active state, read wireless data
-  if (state == ACTIVE) {
-    readWireless();
-  }
+    }*/
 }

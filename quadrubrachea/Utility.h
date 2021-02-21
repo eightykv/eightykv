@@ -3,7 +3,7 @@
 
 #include "Arduino.h"
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 
 // 4 arms
 const int NUM_ARMS = 4;
@@ -14,10 +14,10 @@ const int JOINT_ROM[NUM_JOINTS] = {180, 180, 180, 180};
 // Start pins on the Mega board
 const int START_PINS[NUM_ARMS] = {22, 28, 34, 40};
 const int SLEEP_POS[NUM_ARMS][NUM_JOINTS] = {
-  {70, 45, 0, 90},
-  {110, 60, 0, 90},
-  {180, 140, 0, 90},
-  {0, 140, 0, 90}
+  {85, 140, 180, 120},
+  {85, 140, 180, 120},
+  {140, 160, 180, 60},
+  {140, 160, 180, 60}
 };
 
 // Pins for the state

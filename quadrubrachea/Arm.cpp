@@ -48,10 +48,24 @@ void Arm::execute(int state, bool state_changed, activeData active_data) {
   moveArm();
 }
 
-void Arm::sleepState(bool state_changed) {
+void Arm::setDestination(int joint, int destination) {
+  destination_pos[joint] = destination;
+  Serial.print((String) "Destinations for arm " + which_arm + ": [");
   for (int i = 0; i < NUM_JOINTS; i++) {
-    destination_pos[i] = SLEEP_POS[which_arm][i];
-    move_delay[i] = 20; // TODO: Slow down delay as it "goes to sleep"?
+    Serial.print(destination_pos[i]);
+    if ( i < 3) {
+      Serial.print(", ");
+    }
+  }
+  Serial.println("]");
+}
+
+void Arm::sleepState(bool state_changed) {
+  if (state_changed) {
+    for (int i = 0; i < NUM_JOINTS; i++) {
+      destination_pos[i] = SLEEP_POS[which_arm][i];
+      move_delay[i] = 20; // TODO: Slow down delay as it "goes to sleep"?
+    }
   }
 }
 
