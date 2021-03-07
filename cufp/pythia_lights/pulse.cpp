@@ -19,7 +19,8 @@ void PulseClass::updatePixels() {
         // Subtract relative position from total width
         int loc = ((p->width * 2) - 1) - relative_to;
         // Only changing the green value
-        new_color[1] += p->offset;
+        new_color[1] += p->actual_offsets[loc];
+        //Serial.println(p->actual_offsets[i]);
       }
     }
     for (int j = 0; j < 3; j++) {

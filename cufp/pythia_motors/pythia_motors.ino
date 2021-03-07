@@ -1,8 +1,8 @@
 #include <Servo.h>
 
 Servo horiz;
-int horiz_curr = 90;
-int horiz_goal = 90;
+int horiz_curr = 80;
+int horiz_goal = 80;
 int horiz_delay = 20;
 long horiz_ms;
 
@@ -45,11 +45,14 @@ void loop() {
 
 void checkButton() {
   int button_val = digitalRead(button_pin);
+  mode = button_val;
+  /*
+  int button_val = digitalRead(button_pin);
   if (button_val == 0 && (button_val != last_button_val) && (millis() - button_ms > retrig)) {
     mode = !mode;
     button_ms = millis();
   }
-  last_button_val = button_val;
+  last_button_val = button_val;*/
 }
 
 void calcPause() {
@@ -70,13 +73,13 @@ void calcHorizGoal() {
   if (mode == 0) {
     if (horiz_goal == horiz_curr) {
       int last_goal = horiz_goal;
-      horiz_goal = random(60, 120);
+      horiz_goal = random(45, 120);
       int diff = abs(last_goal - horiz_goal);
       horiz_delay = 40 + min(0, 60 - diff);
     }
   }
   else {
-    horiz_goal = 90;
+    horiz_goal = 80;
     horiz_delay = 30;
   }
 }

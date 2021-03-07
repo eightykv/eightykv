@@ -10,9 +10,9 @@ private:
   int goal_delay_max[3] = {100, 50, 60};
   long color_ms[3];
   
-  int breathe_delay = 42;
-  int breathe_min = 12;
-  int breathe_max = 80;
+  int breathe_delay = 5;
+  int breathe_min = 8;
+  int breathe_max = 200;
   int breathe_current = 16;
   bool increasing = true;
   long breathe_ms;

@@ -60,11 +60,20 @@ void loop()
 
 void checkButton() {
   int button_val = digitalRead(button_pin);
+  mode = button_val;
+  if (mode == 0) {
+    leds.setBrightness(200);
+  }
+  /*
   if (button_val == 0 && (button_val != last_button_val) && (millis() - button_ms > retrig)) {
     mode = !mode;
+    if (mode == 0) {
+      leds.setBrightness(200);
+    }
+    Serial.println((String) "Mode: " + mode);
     button_ms = millis();
   }
-  last_button_val = button_val;
+  last_button_val = button_val;*/
 }
 
 void fillLEDs () {
