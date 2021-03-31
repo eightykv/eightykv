@@ -11,13 +11,19 @@ uint16_t currtouched = 0;
 
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 bool light_on = false;
-bool cycle_color = false;
-bool stop_cycle = false;
-long touch_start = -1;
-long base_color = 5500;
+int state = 0;
+
+const int values[5][3] = 
+{
+  {255, 4, 0},
+  {100, 100, 180},
+  {230, 32, 0},
+  {180, 200, 16},
+  {255, 16, 50}
+};
 
 void setup() {
-  Serial.begin(57600);
+  Serial.begin(115200);
   
   // Default address is 0x5A, if tied to 3.3V its 0x5B
   // If tied to SDA its 0x5C and if SCL then 0x5D
@@ -43,47 +49,28 @@ void getTouch() {
   // Get the currently touched pads
   currtouched = cap.touched();
   
-  if ((currtouched & _BV(0)) && !(lasttouched & _BV(0)) && touch_start < 0 ) {
+  if ((currtouched & _BV(0)) && !(lasttouched & _BV(0))) {
     Serial.println("Touched");
-    touch_start = millis();
-    if (cycle_color) {
-      stop_cycle = true;
-    }
-    
-    Serial.print("Color: ");
-    Serial.println(base_color);
+    light_on = !light_on;
   }
   
-  // If we held it for more than a second, cycle color
-  if (light_on && !cycle_color && (currtouched & _BV(0)) && ((millis() - touch_start) > 1000 )) {
-    cycle_color = true;
-    Serial.println("Start cycle");
-  }
-    
-  if (!(currtouched & _BV(0)) && (lasttouched & _BV(0)) && touch_start > 0 ) {
-    Serial.println("Released");
-    touch_start = -1;
-    if (cycle_color) {
-      light_on = true;
-      if (stop_cycle) {
-        cycle_color = false;
-        stop_cycle = false;
-        Serial.println("stop cycle");
-      }
-    }
-    else {
-      light_on = !light_on;
-    }
-    
-    Serial.print("Light on: ");
-    Serial.println(light_on);
-  }
-
   // reset our state
   lasttouched = currtouched;
 }
 
 void updateLEDs() {
+
+  int num_colors = 5;
+  for (int i = 0; i < LED_COUNT; i++) {
+    int r = values[i % num_colors][0];
+    int g = values[i % num_colors][1];
+    int b = values[i % num_colors][2];
+    strip.setPixelColor(i, strip.Color(r, g, b));
+  }
+  strip.show();
+  delay(10);
+
+  /*
   if (cycle_color) {
     base_color = (base_color + 40) % 65536;
   }
@@ -98,5 +85,5 @@ void updateLEDs() {
   }
   
   strip.show();
-  delay(10);
+  delay(10);*/
 }
