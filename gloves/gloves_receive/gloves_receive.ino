@@ -9,7 +9,8 @@ String data;
 char data_arr[64];
 
 void setup() {
-  Serial.begin(57600);
+  Serial.begin(115200);
+  Serial.println("hello");
   // Setup NRF
   radio.begin();
   radio.openReadingPipe(0, address);
@@ -22,7 +23,7 @@ void loop() {
   if(radio.available()){
     radio.read(&data_arr, sizeof(data_arr));
     data = String(data_arr);
-    Serial.println(data);
+    Serial.println(data_arr);
   }
   delay(20);
 }
