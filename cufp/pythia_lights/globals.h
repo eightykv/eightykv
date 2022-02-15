@@ -5,7 +5,7 @@
 #include <Adafruit_NeoPixel.h>
 
 #define LED_PIN     2
-#define NUM_LEDS    10
+#define NUM_LEDS    30
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
 

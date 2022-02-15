@@ -8,6 +8,10 @@ Breathe::Breathe() {
   breathe_ms = ms;
 }
 
+void Breathe::turnOff() {
+  leds.setBrightness(0);
+}
+
 void Breathe::updateBreathe() {
   updateBrightness();
   updateGoals();

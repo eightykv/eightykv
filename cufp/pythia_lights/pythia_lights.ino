@@ -1,10 +1,17 @@
 #include "globals.h"
 #include "breathe.h"
 #include "pulse.h"
+#include <SoftwareSerial.h>
+#include <SPI.h>
+#include <RF24.h>
 
 long last_update;
 Breathe breathe;
 PulseClass pulse;
+
+RF24 radio(7, 8); // CE, CSN
+const byte address[6] = "00001";
+char data_arr[4];
 
 // Button info to change modes
 int button_pin = 3;
@@ -13,7 +20,7 @@ int button_ms;
 int retrig = 500;
 int mode = 1;
 
-int led_colors[NUM_LEDS][3];
+int led_colors[NUM_LEDS][8];
 Adafruit_NeoPixel leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 #define UPDATES_PER_SECOND 100
@@ -22,10 +29,14 @@ void setup() {
   Serial.begin(115200);
   randomSeed(analogRead(A0));
   pinMode(button_pin, INPUT_PULLUP);
-  delay( 3000 );
 
   breathe = *(new Breathe());
   pulse = *(new PulseClass());
+
+  radio.begin();
+  radio.openReadingPipe(0, address);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.startListening();
 
   leds.begin();
 
@@ -40,11 +51,17 @@ void setup() {
 }
 
 
-void loop()
-{
-  checkButton();
+void loop(){
+  int comms_data = readData();
+  if (comms_data > 0) {
+    mode = comms_data;
+    Serial.println(mode);
+  }
 
   if (mode == 1) {
+    breathe.turnOff();
+  }
+  else if (mode == 2) {
     breathe.updateBreathe();
   }
   else {
@@ -58,22 +75,13 @@ void loop()
   }
 }
 
-void checkButton() {
-  int button_val = digitalRead(button_pin);
-  mode = button_val;
-  if (mode == 0) {
-    leds.setBrightness(200);
+int readData() {
+  int data_out = 0;
+  if(radio.available()){
+    radio.read(&data_arr, sizeof(data_arr));
+    data_out = atoi(data_arr);
   }
-  /*
-  if (button_val == 0 && (button_val != last_button_val) && (millis() - button_ms > retrig)) {
-    mode = !mode;
-    if (mode == 0) {
-      leds.setBrightness(200);
-    }
-    Serial.println((String) "Mode: " + mode);
-    button_ms = millis();
-  }
-  last_button_val = button_val;*/
+  return data_out;
 }
 
 void fillLEDs () {

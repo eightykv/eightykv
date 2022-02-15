@@ -1,3 +1,6 @@
+#ifndef breathe_h
+#define breathe_h
+
 #include "globals.h"
 
 class Breathe {
@@ -24,4 +27,7 @@ private:
 public:
   Breathe();
   void updateBreathe();
+  void turnOff();
 };
+
+#endif

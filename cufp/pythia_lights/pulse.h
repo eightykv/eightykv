@@ -16,7 +16,7 @@ struct Pulse {
 };
 
 //const int LED_FORMAT = NEO_GRB + NEO_KHZ800;
-const int DEFAULT_COLOR[3] = {255, 0, 0};
+const int DEFAULT_COLOR[3] = {0, 0, 255};
 const int TIME_BETWEEN = 200;
 // Width is between one third and four fifths of the length of the strip
 const int MIN_WIDTH = 8;
@@ -28,7 +28,7 @@ const int MAX_OFFSET = 64;
 const int MIN_DELAY = 80;
 const int MAX_DELAY = 180;
 // Max number of pulses
-const int MAX_PULSES = 7;
+const int MAX_PULSES = 5;
 
 
 class PulseClass {
