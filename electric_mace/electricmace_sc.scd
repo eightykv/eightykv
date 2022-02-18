@@ -4,8 +4,9 @@ s.boot;
 // Make a bunch of buses
 ~a_bus = Bus.control(s);
 ~b_bus = Bus.control(s);
+~c_bus = Bus.control(s);
 // Turn all buses into an array
-~test = [~a_bus, ~b_bus];
+~test = [~a_bus, ~b_bus, ~c_bus];
 (
 f = { |msg, time, addr|
 	// Message -- first arg is which bus, second arg is which value
