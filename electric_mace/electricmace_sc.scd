@@ -1,4 +1,7 @@
 thisProcess.openUDPPort(6969);
+o = Server.default.options;
+o.inDevice_("ASIO : Focusrite USB ASIO");
+o.outDevice_("ASIO : Focusrite USB ASIO");
 s.boot;
 
 // Make a bunch of buses
@@ -17,6 +20,19 @@ f = { |msg, time, addr|
 thisProcess.addOSCRecvFunc(f);
 );
 
+(
+SynthDef("help-synth", {| freq = 440, out = 0 |
+    Out.ar(out, Mix(SinOsc.ar(freq, 0, 0.1)));
+}).add;
+)
+(
+x = Synth("help-synth");
+x.map(\freq, ~b_bus.index);
+
+y = Synth("help-synth");
+y.map(\freq, ~c_bus.index);
+)
+
 
 SynthDef(\windy, { |on, freq_arg = 0, distort_arg = 0|
 	var env, sig;
@@ -26,8 +42,8 @@ SynthDef(\windy, { |on, freq_arg = 0, distort_arg = 0|
 	sig = Mix.fill(5, {
 		|i|
 		var vol = 0.2 - (0.02 * i);
-		var freq = (40 * i) + (100 * i * freq_arg);
-		var sig1 = RLPF.ar(BrownNoise.ar, freq, 0.2, vol);
+		//var freq = (40 * i) + (100 * i * freq_arg);
+		var sig1 = RLPF.ar(BrownNoise.ar, freq_arg, 0.2, vol);
 		var sig2 = (sig1 * (1 - distort_arg)) + (CrossoverDistortion.ar(sig1, 0.8, 0.25) * 0.1 * distort_arg).softclip;
 		sig2 * env;
 	});

@@ -14,4 +14,4 @@ function process_uart(data) {
 }
 uart_in.on("data", process_uart);
 
-generative.startMelody(69);
+generative.startMelody(45);
